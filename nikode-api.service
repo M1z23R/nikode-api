@@ -1,0 +1,29 @@
+[Unit]
+Description=Nikode API
+After=network.target
+
+[Service]
+Type=simple
+User=nikode
+Group=nikode
+WorkingDirectory=/opt/nikode-api
+
+ExecStart=/opt/nikode-api/nikode-api
+
+EnvironmentFile=/opt/nikode-api/.env
+
+Restart=always
+RestartSec=3
+
+# Hardening (safe defaults)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
