@@ -13,3 +13,7 @@ type TokenResponse struct {
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
+
+type ExchangeCodeRequest struct {
+	Code string `json:"code"`
+}

@@ -64,11 +64,10 @@ func main() {
 
 	app.Use(middleware.Recovery())
 	app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowCredentials: true,
-		MaxAge:           86400,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		MaxAge:       86400,
 	}))
 	app.Use(middleware.BodyParser())
 
@@ -77,6 +76,7 @@ func main() {
 	auth := api.Group("/auth")
 	auth.Get("/:provider/consent", authHandler.GetConsentURL)
 	auth.Get("/:provider/callback", authHandler.Callback)
+	auth.Post("/exchange", authHandler.ExchangeCode)
 	auth.Post("/refresh", authHandler.RefreshToken)
 	auth.Post("/logout", authHandler.Logout)
 

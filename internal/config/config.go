@@ -47,7 +47,7 @@ func Load() (*Config, error) {
 		Env:         getEnv("ENV", "development"),
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 
-		JWTSecret:        getEnv("JWT_SECRET", "change-me-in-production"),
+		JWTSecret:        getEnvOrPanic("JWT_SECRET"),
 		JWTAccessExpiry:  accessExpiry,
 		JWTRefreshExpiry: refreshExpiry,
 
@@ -80,4 +80,12 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvOrPanic(key string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		panic("required environment variable not set: " + key)
+	}
+	return value
 }

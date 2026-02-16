@@ -2,11 +2,17 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/dimitrije/nikode-api/internal/database"
 	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/google/uuid"
+)
+
+var (
+	ErrCannotRemoveOwner = errors.New("cannot remove team owner")
+	ErrMemberNotFound    = errors.New("member not found")
 )
 
 type TeamService struct {
@@ -163,8 +169,20 @@ func (s *TeamService) AddMember(ctx context.Context, teamID, userID uuid.UUID) e
 }
 
 func (s *TeamService) RemoveMember(ctx context.Context, teamID, userID uuid.UUID) error {
-	_, err := s.db.Pool.Exec(ctx, `
-		DELETE FROM team_members WHERE team_id = $1 AND user_id = $2 AND role != $3
-	`, teamID, userID, models.RoleOwner)
+	var role string
+	err := s.db.Pool.QueryRow(ctx, `
+		SELECT role FROM team_members WHERE team_id = $1 AND user_id = $2
+	`, teamID, userID).Scan(&role)
+	if err != nil {
+		return ErrMemberNotFound
+	}
+
+	if role == models.RoleOwner {
+		return ErrCannotRemoveOwner
+	}
+
+	_, err = s.db.Pool.Exec(ctx, `
+		DELETE FROM team_members WHERE team_id = $1 AND user_id = $2
+	`, teamID, userID)
 	return err
 }

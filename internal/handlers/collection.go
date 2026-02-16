@@ -198,16 +198,23 @@ func (h *CollectionHandler) Update(c *drift.Context) {
 	collection, err := h.collectionService.Update(ctx, collectionID, req.Name, req.Data, req.Version, userID)
 	if err != nil {
 		if errors.Is(err, services.ErrVersionConflict) {
+			currentVersion := 0
+			if col, _ := h.collectionService.GetByID(ctx, collectionID); col != nil {
+				currentVersion = col.Version
+			}
 			c.JSON(409, map[string]interface{}{
-				"code":    "VERSION_CONFLICT",
-				"message": "collection has been modified by another user",
-				"current_version": func() int {
-					if col, _ := h.collectionService.GetByID(ctx, collectionID); col != nil {
-						return col.Version
-					}
-					return 0
-				}(),
+				"code":            "VERSION_CONFLICT",
+				"message":         "collection has been modified by another user",
+				"current_version": currentVersion,
 			})
+			return
+		}
+		if errors.Is(err, services.ErrCollectionNotFound) {
+			c.NotFound("collection not found")
+			return
+		}
+		if errors.Is(err, services.ErrNoFieldsToUpdate) {
+			c.BadRequest("no fields to update")
 			return
 		}
 		c.InternalServerError("failed to update collection")

@@ -23,9 +23,15 @@ type AuthHandler struct {
 	tokenService *services.TokenService
 	jwtService   *services.JWTService
 	states       sync.Map
+	authCodes    sync.Map
 }
 
 type stateData struct {
+	expiresAt time.Time
+}
+
+type authCodeData struct {
+	userID    uuid.UUID
 	expiresAt time.Time
 }
 
@@ -59,12 +65,18 @@ func NewAuthHandler(
 }
 
 func (h *AuthHandler) cleanupStates() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(1 * time.Minute)
 	for range ticker.C {
 		now := time.Now()
 		h.states.Range(func(key, value interface{}) bool {
 			if sd, ok := value.(stateData); ok && now.After(sd.expiresAt) {
 				h.states.Delete(key)
+			}
+			return true
+		})
+		h.authCodes.Range(func(key, value interface{}) bool {
+			if acd, ok := value.(authCodeData); ok && now.After(acd.expiresAt) {
+				h.authCodes.Delete(key)
 			}
 			return true
 		})
@@ -140,27 +152,75 @@ func (h *AuthHandler) Callback(c *drift.Context) {
 		return
 	}
 
+	authCode, err := oauth.GenerateState()
+	if err != nil {
+		h.redirectWithError(c, "failed to generate auth code")
+		return
+	}
+
+	h.authCodes.Store(authCode, authCodeData{
+		userID:    user.ID,
+		expiresAt: time.Now().Add(30 * time.Second),
+	})
+
+	redirectURL := fmt.Sprintf("%s?code=%s",
+		h.cfg.FrontendCallbackURL,
+		url.QueryEscape(authCode),
+	)
+
+	c.Redirect(302, redirectURL)
+}
+
+func (h *AuthHandler) ExchangeCode(c *drift.Context) {
+	var req dto.ExchangeCodeRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.BadRequest("invalid request body")
+		return
+	}
+
+	if req.Code == "" {
+		c.BadRequest("code is required")
+		return
+	}
+
+	acd, ok := h.authCodes.LoadAndDelete(req.Code)
+	if !ok {
+		c.Unauthorized("invalid or expired code")
+		return
+	}
+
+	codeData := acd.(authCodeData)
+	if time.Now().After(codeData.expiresAt) {
+		c.Unauthorized("code expired")
+		return
+	}
+
+	ctx := context.Background()
+
+	user, err := h.userService.GetByID(ctx, codeData.userID)
+	if err != nil {
+		c.Unauthorized("user not found")
+		return
+	}
+
 	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email)
 	if err != nil {
-		h.redirectWithError(c, "failed to generate tokens")
+		c.InternalServerError("failed to generate tokens")
 		return
 	}
 
 	tokenHash := services.HashToken(tokenPair.RefreshToken)
 	expiresAt := time.Now().Add(h.jwtService.RefreshExpiry())
 	if err := h.tokenService.StoreRefreshToken(ctx, user.ID, tokenHash, expiresAt); err != nil {
-		h.redirectWithError(c, "failed to store refresh token")
+		c.InternalServerError("failed to store refresh token")
 		return
 	}
 
-	redirectURL := fmt.Sprintf("%s?access_token=%s&refresh_token=%s&expires_in=%d",
-		h.cfg.FrontendCallbackURL,
-		url.QueryEscape(tokenPair.AccessToken),
-		url.QueryEscape(tokenPair.RefreshToken),
-		tokenPair.ExpiresIn,
-	)
-
-	c.Redirect(302, redirectURL)
+	c.JSON(200, dto.TokenResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+	})
 }
 
 func (h *AuthHandler) RefreshToken(c *drift.Context) {

@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"context"
+	"errors"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type TeamHandler struct {
@@ -308,6 +309,14 @@ func (h *TeamHandler) RemoveMember(c *drift.Context) {
 	}
 
 	if err := h.teamService.RemoveMember(context.Background(), teamID, memberID); err != nil {
+		if errors.Is(err, services.ErrCannotRemoveOwner) {
+			c.BadRequest("cannot remove team owner")
+			return
+		}
+		if errors.Is(err, services.ErrMemberNotFound) {
+			c.NotFound("member not found")
+			return
+		}
 		c.InternalServerError("failed to remove member")
 		return
 	}
@@ -328,18 +337,15 @@ func (h *TeamHandler) LeaveTeam(c *drift.Context) {
 		return
 	}
 
-	isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
-	if err != nil {
-		c.NotFound("team not found")
-		return
-	}
-
-	if isOwner {
-		c.BadRequest("owner cannot leave team, transfer ownership or delete it")
-		return
-	}
-
 	if err := h.teamService.RemoveMember(context.Background(), teamID, userID); err != nil {
+		if errors.Is(err, services.ErrCannotRemoveOwner) {
+			c.BadRequest("owner cannot leave team, transfer ownership or delete it")
+			return
+		}
+		if errors.Is(err, services.ErrMemberNotFound) {
+			c.NotFound("team not found or not a member")
+			return
+		}
 		c.InternalServerError("failed to leave team")
 		return
 	}

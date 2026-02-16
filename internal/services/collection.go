@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/dimitrije/nikode-api/internal/database"
 	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/google/uuid"
 )
 
-var ErrVersionConflict = errors.New("version conflict: collection has been modified")
+var (
+	ErrVersionConflict  = errors.New("version conflict: collection has been modified")
+	ErrCollectionNotFound = errors.New("collection not found")
+	ErrNoFieldsToUpdate = errors.New("no fields to update")
+)
 
 type CollectionService struct {
 	db *database.DB
@@ -129,7 +132,7 @@ func (s *CollectionService) Update(ctx context.Context, collectionID uuid.UUID, 
 			return nil, s.checkVersionConflict(ctx, collectionID, expectedVersion, err)
 		}
 	} else {
-		return nil, fmt.Errorf("no fields to update")
+		return nil, ErrNoFieldsToUpdate
 	}
 
 	return &collection, nil
@@ -138,7 +141,10 @@ func (s *CollectionService) Update(ctx context.Context, collectionID uuid.UUID, 
 func (s *CollectionService) checkVersionConflict(ctx context.Context, collectionID uuid.UUID, expectedVersion int, originalErr error) error {
 	var currentVersion int
 	err := s.db.Pool.QueryRow(ctx, `SELECT version FROM collections WHERE id = $1`, collectionID).Scan(&currentVersion)
-	if err == nil && currentVersion != expectedVersion {
+	if err != nil {
+		return ErrCollectionNotFound
+	}
+	if currentVersion != expectedVersion {
 		return ErrVersionConflict
 	}
 	return originalErr
