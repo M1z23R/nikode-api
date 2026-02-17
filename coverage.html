@@ -1,0 +1,4041 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>nikode-api: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/dimitrije/nikode-api/cmd/nikode-api/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/dimitrije/nikode-api/internal/config/config.go (0.0%)</option>
+				
+				<option value="file2">github.com/dimitrije/nikode-api/internal/database/database.go (0.0%)</option>
+				
+				<option value="file3">github.com/dimitrije/nikode-api/internal/database/migrations.go (0.0%)</option>
+				
+				<option value="file4">github.com/dimitrije/nikode-api/internal/handlers/auth.go (0.0%)</option>
+				
+				<option value="file5">github.com/dimitrije/nikode-api/internal/handlers/collection.go (0.0%)</option>
+				
+				<option value="file6">github.com/dimitrije/nikode-api/internal/handlers/sse.go (0.0%)</option>
+				
+				<option value="file7">github.com/dimitrije/nikode-api/internal/handlers/team.go (0.0%)</option>
+				
+				<option value="file8">github.com/dimitrije/nikode-api/internal/handlers/user.go (0.0%)</option>
+				
+				<option value="file9">github.com/dimitrije/nikode-api/internal/handlers/workspace.go (0.0%)</option>
+				
+				<option value="file10">github.com/dimitrije/nikode-api/internal/middleware/auth.go (100.0%)</option>
+				
+				<option value="file11">github.com/dimitrije/nikode-api/internal/models/workspace.go (0.0%)</option>
+				
+				<option value="file12">github.com/dimitrije/nikode-api/internal/oauth/github.go (7.3%)</option>
+				
+				<option value="file13">github.com/dimitrije/nikode-api/internal/oauth/gitlab.go (15.0%)</option>
+				
+				<option value="file14">github.com/dimitrije/nikode-api/internal/oauth/google.go (17.6%)</option>
+				
+				<option value="file15">github.com/dimitrije/nikode-api/internal/oauth/oauth.go (75.0%)</option>
+				
+				<option value="file16">github.com/dimitrije/nikode-api/internal/services/collection.go (87.5%)</option>
+				
+				<option value="file17">github.com/dimitrije/nikode-api/internal/services/jwt.go (82.1%)</option>
+				
+				<option value="file18">github.com/dimitrije/nikode-api/internal/services/team.go (87.5%)</option>
+				
+				<option value="file19">github.com/dimitrije/nikode-api/internal/services/token.go (100.0%)</option>
+				
+				<option value="file20">github.com/dimitrije/nikode-api/internal/services/user.go (93.9%)</option>
+				
+				<option value="file21">github.com/dimitrije/nikode-api/internal/services/workspace.go (85.4%)</option>
+				
+				<option value="file22">github.com/dimitrije/nikode-api/internal/sse/hub.go (100.0%)</option>
+				
+				<option value="file23">github.com/dimitrije/nikode-api/tests/testutil/database.go (0.0%)</option>
+				
+				<option value="file24">github.com/dimitrije/nikode-api/tests/testutil/fixtures.go (0.0%)</option>
+				
+				<option value="file25">github.com/dimitrije/nikode-api/tests/testutil/http.go (0.0%)</option>
+				
+				<option value="file26">github.com/dimitrije/nikode-api/tests/testutil/mocks.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "os/signal"
+        "syscall"
+        "time"
+
+        "github.com/dimitrije/nikode-api/internal/config"
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/handlers"
+        authmw "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/internal/sse"
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/m1z23r/drift/pkg/middleware"
+)
+
+func main() <span class="cov0" title="0">{
+        cfg, err := config.Load()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to load config: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        db, err := database.New(ctx, cfg.DatabaseURL)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to connect to database: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer db.Close()
+
+        if err := db.Migrate(ctx); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to run migrations: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTAccessExpiry, cfg.JWTRefreshExpiry)
+        userService := services.NewUserService(db)
+        tokenService := services.NewTokenService(db)
+        teamService := services.NewTeamService(db)
+        workspaceService := services.NewWorkspaceService(db, teamService)
+        collectionService := services.NewCollectionService(db)
+
+        hub := sse.NewHub()
+        go hub.Run()
+
+        authHandler := handlers.NewAuthHandler(cfg, userService, tokenService, jwtService)
+        userHandler := handlers.NewUserHandler(userService)
+        teamHandler := handlers.NewTeamHandler(teamService, userService)
+        workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, teamService)
+        collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, hub)
+        sseHandler := handlers.NewSSEHandler(hub, workspaceService)
+
+        app := drift.New()
+
+        if cfg.IsProduction() </span><span class="cov0" title="0">{
+                app.SetMode(drift.ReleaseMode)
+        }</span> else<span class="cov0" title="0"> {
+                app.SetMode(drift.DebugMode)
+        }</span>
+
+        <span class="cov0" title="0">app.Use(middleware.Recovery())
+        app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+                AllowOrigins: []string{"*"},
+                AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+                AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+                MaxAge:       86400,
+        }))
+        app.Use(middleware.BodyParser())
+
+        api := app.Group("/api/v1")
+
+        auth := api.Group("/auth")
+        auth.Get("/:provider/consent", authHandler.GetConsentURL)
+        auth.Get("/:provider/callback", authHandler.Callback)
+        auth.Post("/exchange", authHandler.ExchangeCode)
+        auth.Post("/refresh", authHandler.RefreshToken)
+        auth.Post("/logout", authHandler.Logout)
+
+        protected := api.Group("")
+        protected.Use(authmw.Auth(jwtService))
+
+        protected.Post("/auth/logout-all", authHandler.LogoutAll)
+
+        protected.Get("/users/me", userHandler.GetMe)
+        protected.Patch("/users/me", userHandler.UpdateMe)
+
+        protected.Get("/teams", teamHandler.List)
+        protected.Post("/teams", teamHandler.Create)
+        protected.Get("/teams/:id", teamHandler.Get)
+        protected.Patch("/teams/:id", teamHandler.Update)
+        protected.Delete("/teams/:id", teamHandler.Delete)
+        protected.Get("/teams/:id/members", teamHandler.GetMembers)
+        protected.Post("/teams/:id/members", teamHandler.InviteMember)
+        protected.Delete("/teams/:id/members/:memberId", teamHandler.RemoveMember)
+        protected.Post("/teams/:id/leave", teamHandler.LeaveTeam)
+
+        protected.Get("/workspaces", workspaceHandler.List)
+        protected.Post("/workspaces", workspaceHandler.Create)
+        protected.Get("/workspaces/:workspaceId", workspaceHandler.Get)
+        protected.Patch("/workspaces/:workspaceId", workspaceHandler.Update)
+        protected.Delete("/workspaces/:workspaceId", workspaceHandler.Delete)
+
+        protected.Get("/workspaces/:workspaceId/collections", collectionHandler.List)
+        protected.Post("/workspaces/:workspaceId/collections", collectionHandler.Create)
+        protected.Get("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Get)
+        protected.Patch("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Update)
+        protected.Delete("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Delete)
+
+        protected.Get("/workspaces/:workspaceId/events", sseHandler.Connect)
+        protected.Post("/sse/:clientId/subscribe/:workspaceId", sseHandler.Subscribe)
+        protected.Post("/sse/:clientId/unsubscribe/:workspaceId", sseHandler.Unsubscribe)
+
+        api.Get("/health", func(c *drift.Context) </span><span class="cov0" title="0">{
+                c.JSON(200, map[string]string{"status": "ok"})
+        }</span>)
+
+        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
+                ticker := time.NewTicker(1 * time.Hour)
+                for range ticker.C </span><span class="cov0" title="0">{
+                        _ = tokenService.CleanupExpired(context.Background())
+                }</span>
+        }()
+
+        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
+                addr := fmt.Sprintf(":%s", cfg.Port)
+                log.Printf("Server starting on %s", addr)
+                if err := app.Run(addr); err != nil </span><span class="cov0" title="0">{
+                        log.Fatalf("Server failed: %v", err)
+                }</span>
+        }()
+
+        <span class="cov0" title="0">quit := make(chan os.Signal, 1)
+        signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+        &lt;-quit
+
+        log.Println("Shutting down server...")</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package config
+
+import (
+        "os"
+        "time"
+
+        "github.com/joho/godotenv"
+)
+
+type Config struct {
+        Port        string
+        Env         string
+        DatabaseURL string
+
+        JWTSecret        string
+        JWTAccessExpiry  time.Duration
+        JWTRefreshExpiry time.Duration
+
+        FrontendCallbackURL string
+
+        GitHub OAuthConfig
+        GitLab OAuthConfig
+        Google OAuthConfig
+}
+
+type OAuthConfig struct {
+        ClientID     string
+        ClientSecret string
+        RedirectURL  string
+}
+
+func Load() (*Config, error) <span class="cov0" title="0">{
+        _ = godotenv.Load()
+
+        accessExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
+        if err != nil </span><span class="cov0" title="0">{
+                accessExpiry = 15 * time.Minute
+        }</span>
+
+        <span class="cov0" title="0">refreshExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "168h"))
+        if err != nil </span><span class="cov0" title="0">{
+                refreshExpiry = 168 * time.Hour
+        }</span>
+
+        <span class="cov0" title="0">return &amp;Config{
+                Port:        getEnv("PORT", "8080"),
+                Env:         getEnv("ENV", "development"),
+                DatabaseURL: getEnv("DATABASE_URL", ""),
+
+                JWTSecret:        getEnvOrPanic("JWT_SECRET"),
+                JWTAccessExpiry:  accessExpiry,
+                JWTRefreshExpiry: refreshExpiry,
+
+                FrontendCallbackURL: getEnv("FRONTEND_CALLBACK_URL", "nikode://auth/callback"),
+
+                GitHub: OAuthConfig{
+                        ClientID:     getEnv("GITHUB_CLIENT_ID", ""),
+                        ClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
+                        RedirectURL:  getEnv("GITHUB_REDIRECT_URL", ""),
+                },
+                GitLab: OAuthConfig{
+                        ClientID:     getEnv("GITLAB_CLIENT_ID", ""),
+                        ClientSecret: getEnv("GITLAB_CLIENT_SECRET", ""),
+                        RedirectURL:  getEnv("GITLAB_REDIRECT_URL", ""),
+                },
+                Google: OAuthConfig{
+                        ClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+                        ClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+                        RedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+                },
+        }, nil</span>
+}
+
+func (c *Config) IsProduction() bool <span class="cov0" title="0">{
+        return c.Env == "production"
+}</span>
+
+func getEnv(key, fallback string) string <span class="cov0" title="0">{
+        if value, ok := os.LookupEnv(key); ok </span><span class="cov0" title="0">{
+                return value
+        }</span>
+        <span class="cov0" title="0">return fallback</span>
+}
+
+func getEnvOrPanic(key string) string <span class="cov0" title="0">{
+        value, ok := os.LookupEnv(key)
+        if !ok || value == "" </span><span class="cov0" title="0">{
+                panic("required environment variable not set: " + key)</span>
+        }
+        <span class="cov0" title="0">return value</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package database
+
+import (
+        "context"
+        "fmt"
+
+        "github.com/jackc/pgx/v5"
+        "github.com/jackc/pgx/v5/pgconn"
+        "github.com/jackc/pgx/v5/pgxpool"
+)
+
+// Pool defines the interface for database operations.
+// This interface is implemented by both *pgxpool.Pool and pgxmock for testing.
+type Pool interface {
+        Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+        Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+        QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+        Begin(ctx context.Context) (pgx.Tx, error)
+        Close()
+}
+
+type DB struct {
+        Pool Pool
+}
+
+func New(ctx context.Context, databaseURL string) (*DB, error) <span class="cov0" title="0">{
+        pool, err := pgxpool.New(ctx, databaseURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create connection pool: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if err := pool.Ping(ctx); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to ping database: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;DB{Pool: pool}, nil</span>
+}
+
+func (db *DB) Close() <span class="cov0" title="0">{
+        db.Pool.Close()
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package database
+
+import (
+        "context"
+        "fmt"
+)
+
+var migrations = []string{
+        `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`,
+
+        `CREATE TABLE IF NOT EXISTS users (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                email VARCHAR(255) UNIQUE NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                avatar_url VARCHAR(500),
+                provider VARCHAR(50) NOT NULL,
+                provider_id VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                UNIQUE(provider, provider_id)
+        )`,
+
+        `CREATE TABLE IF NOT EXISTS teams (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                name VARCHAR(255) NOT NULL,
+                owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )`,
+
+        `CREATE TABLE IF NOT EXISTS team_members (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                role VARCHAR(50) NOT NULL DEFAULT 'member',
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                UNIQUE(team_id, user_id)
+        )`,
+
+        `CREATE TABLE IF NOT EXISTS workspaces (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                name VARCHAR(255) NOT NULL,
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                CONSTRAINT workspace_owner_check CHECK (
+                        (user_id IS NOT NULL AND team_id IS NULL) OR
+                        (user_id IS NULL AND team_id IS NOT NULL)
+                )
+        )`,
+
+        `CREATE TABLE IF NOT EXISTS collections (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+                name VARCHAR(255) NOT NULL,
+                data JSONB NOT NULL DEFAULT '{}',
+                version INTEGER NOT NULL DEFAULT 1,
+                updated_by UUID REFERENCES users(id),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )`,
+
+        `CREATE TABLE IF NOT EXISTS refresh_tokens (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token_hash VARCHAR(255) NOT NULL UNIQUE,
+                expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        )`,
+
+        `CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_workspaces_user_id ON workspaces(user_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_workspaces_team_id ON workspaces(team_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_collections_workspace_id ON collections(workspace_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
+}
+
+func (db *DB) Migrate(ctx context.Context) error <span class="cov0" title="0">{
+        for i, migration := range migrations </span><span class="cov0" title="0">{
+                if _, err := db.Pool.Exec(ctx, migration); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("migration %d failed: %w", i+1, err)
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handlers
+
+import (
+        "context"
+        "fmt"
+        "net/url"
+        "sync"
+        "time"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/config"
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/oauth"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/pkg/dto"
+        "github.com/google/uuid"
+)
+
+type AuthHandler struct {
+        cfg          *config.Config
+        providers    map[string]oauth.Provider
+        userService  *services.UserService
+        tokenService *services.TokenService
+        jwtService   *services.JWTService
+        states       sync.Map
+        authCodes    sync.Map
+}
+
+type stateData struct {
+        expiresAt time.Time
+}
+
+type authCodeData struct {
+        userID    uuid.UUID
+        expiresAt time.Time
+}
+
+func NewAuthHandler(
+        cfg *config.Config,
+        userService *services.UserService,
+        tokenService *services.TokenService,
+        jwtService *services.JWTService,
+) *AuthHandler <span class="cov0" title="0">{
+        h := &amp;AuthHandler{
+                cfg:          cfg,
+                providers:    make(map[string]oauth.Provider),
+                userService:  userService,
+                tokenService: tokenService,
+                jwtService:   jwtService,
+        }
+
+        if cfg.GitHub.ClientID != "" </span><span class="cov0" title="0">{
+                h.providers["github"] = oauth.NewGitHubProvider(cfg.GitHub)
+        }</span>
+        <span class="cov0" title="0">if cfg.GitLab.ClientID != "" </span><span class="cov0" title="0">{
+                h.providers["gitlab"] = oauth.NewGitLabProvider(cfg.GitLab)
+        }</span>
+        <span class="cov0" title="0">if cfg.Google.ClientID != "" </span><span class="cov0" title="0">{
+                h.providers["google"] = oauth.NewGoogleProvider(cfg.Google)
+        }</span>
+
+        <span class="cov0" title="0">go h.cleanupStates()
+
+        return h</span>
+}
+
+func (h *AuthHandler) cleanupStates() <span class="cov0" title="0">{
+        ticker := time.NewTicker(1 * time.Minute)
+        for range ticker.C </span><span class="cov0" title="0">{
+                now := time.Now()
+                h.states.Range(func(key, value interface{}) bool </span><span class="cov0" title="0">{
+                        if sd, ok := value.(stateData); ok &amp;&amp; now.After(sd.expiresAt) </span><span class="cov0" title="0">{
+                                h.states.Delete(key)
+                        }</span>
+                        <span class="cov0" title="0">return true</span>
+                })
+                <span class="cov0" title="0">h.authCodes.Range(func(key, value interface{}) bool </span><span class="cov0" title="0">{
+                        if acd, ok := value.(authCodeData); ok &amp;&amp; now.After(acd.expiresAt) </span><span class="cov0" title="0">{
+                                h.authCodes.Delete(key)
+                        }</span>
+                        <span class="cov0" title="0">return true</span>
+                })
+        }
+}
+
+func (h *AuthHandler) GetConsentURL(c *drift.Context) <span class="cov0" title="0">{
+        provider := c.Param("provider")
+
+        p, ok := h.providers[provider]
+        if !ok </span><span class="cov0" title="0">{
+                c.BadRequest("unsupported provider: " + provider)
+                return
+        }</span>
+
+        <span class="cov0" title="0">state, err := oauth.GenerateState()
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to generate state")
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.states.Store(state, stateData{expiresAt: time.Now().Add(10 * time.Minute)})
+
+        c.JSON(200, dto.ConsentURLResponse{
+                URL: p.GetConsentURL(state),
+        })</span>
+}
+
+func (h *AuthHandler) Callback(c *drift.Context) <span class="cov0" title="0">{
+        provider := c.Param("provider")
+
+        p, ok := h.providers[provider]
+        if !ok </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "unsupported provider")
+                return
+        }</span>
+
+        <span class="cov0" title="0">state := c.QueryParam("state")
+        if state == "" </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "missing state parameter")
+                return
+        }</span>
+
+        <span class="cov0" title="0">sd, ok := h.states.LoadAndDelete(state)
+        if !ok </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "invalid or expired state")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if time.Now().After(sd.(stateData).expiresAt) </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "state expired")
+                return
+        }</span>
+
+        <span class="cov0" title="0">code := c.QueryParam("code")
+        if code == "" </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "missing authorization code")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+        defer cancel()
+
+        userInfo, err := p.ExchangeCode(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "failed to exchange code: "+err.Error())
+                return
+        }</span>
+
+        <span class="cov0" title="0">user, err := h.userService.FindOrCreateFromOAuth(ctx, userInfo)
+        if err != nil </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "failed to create user")
+                return
+        }</span>
+
+        <span class="cov0" title="0">authCode, err := oauth.GenerateState()
+        if err != nil </span><span class="cov0" title="0">{
+                h.redirectWithError(c, "failed to generate auth code")
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.authCodes.Store(authCode, authCodeData{
+                userID:    user.ID,
+                expiresAt: time.Now().Add(30 * time.Second),
+        })
+
+        redirectURL := fmt.Sprintf("%s?code=%s",
+                h.cfg.FrontendCallbackURL,
+                url.QueryEscape(authCode),
+        )
+
+        c.Redirect(302, redirectURL)</span>
+}
+
+func (h *AuthHandler) ExchangeCode(c *drift.Context) <span class="cov0" title="0">{
+        var req dto.ExchangeCodeRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Code == "" </span><span class="cov0" title="0">{
+                c.BadRequest("code is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">acd, ok := h.authCodes.LoadAndDelete(req.Code)
+        if !ok </span><span class="cov0" title="0">{
+                c.Unauthorized("invalid or expired code")
+                return
+        }</span>
+
+        <span class="cov0" title="0">codeData := acd.(authCodeData)
+        if time.Now().After(codeData.expiresAt) </span><span class="cov0" title="0">{
+                c.Unauthorized("code expired")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        user, err := h.userService.GetByID(ctx, codeData.userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.Unauthorized("user not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to generate tokens")
+                return
+        }</span>
+
+        <span class="cov0" title="0">tokenHash := services.HashToken(tokenPair.RefreshToken)
+        expiresAt := time.Now().Add(h.jwtService.RefreshExpiry())
+        if err := h.tokenService.StoreRefreshToken(ctx, user.ID, tokenHash, expiresAt); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to store refresh token")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.TokenResponse{
+                AccessToken:  tokenPair.AccessToken,
+                RefreshToken: tokenPair.RefreshToken,
+                ExpiresIn:    tokenPair.ExpiresIn,
+        })</span>
+}
+
+func (h *AuthHandler) RefreshToken(c *drift.Context) <span class="cov0" title="0">{
+        var req dto.RefreshTokenRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.RefreshToken == "" </span><span class="cov0" title="0">{
+                c.BadRequest("refresh_token is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">userID, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
+        if err != nil </span><span class="cov0" title="0">{
+                c.Unauthorized("invalid refresh token")
+                return
+        }</span>
+
+        <span class="cov0" title="0">tokenHash := services.HashToken(req.RefreshToken)
+        ctx := context.Background()
+
+        storedUserID, err := h.tokenService.ValidateRefreshToken(ctx, tokenHash)
+        if err != nil || storedUserID != userID </span><span class="cov0" title="0">{
+                c.Unauthorized("refresh token not found or expired")
+                return
+        }</span>
+
+        <span class="cov0" title="0">user, err := h.userService.GetByID(ctx, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.Unauthorized("user not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.tokenService.RevokeRefreshToken(ctx, tokenHash); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to revoke old token")
+                return
+        }</span>
+
+        <span class="cov0" title="0">tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to generate tokens")
+                return
+        }</span>
+
+        <span class="cov0" title="0">newTokenHash := services.HashToken(tokenPair.RefreshToken)
+        expiresAt := time.Now().Add(h.jwtService.RefreshExpiry())
+        if err := h.tokenService.StoreRefreshToken(ctx, user.ID, newTokenHash, expiresAt); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to store refresh token")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.TokenResponse{
+                AccessToken:  tokenPair.AccessToken,
+                RefreshToken: tokenPair.RefreshToken,
+                ExpiresIn:    tokenPair.ExpiresIn,
+        })</span>
+}
+
+func (h *AuthHandler) Logout(c *drift.Context) <span class="cov0" title="0">{
+        var req dto.RefreshTokenRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.RefreshToken != "" </span><span class="cov0" title="0">{
+                tokenHash := services.HashToken(req.RefreshToken)
+                _ = h.tokenService.RevokeRefreshToken(context.Background(), tokenHash)
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "logged out"})</span>
+}
+
+func (h *AuthHandler) LogoutAll(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == (uuid.UUID{}) </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.tokenService.RevokeAllUserTokens(context.Background(), userID); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to revoke tokens")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "all sessions logged out"})</span>
+}
+
+func (h *AuthHandler) redirectWithError(c *drift.Context, errMsg string) <span class="cov0" title="0">{
+        redirectURL := fmt.Sprintf("%s?error=%s",
+                h.cfg.FrontendCallbackURL,
+                url.QueryEscape(errMsg),
+        )
+        c.Redirect(302, redirectURL)
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package handlers
+
+import (
+        "context"
+        "errors"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/internal/sse"
+        "github.com/dimitrije/nikode-api/pkg/dto"
+        "github.com/google/uuid"
+)
+
+type CollectionHandler struct {
+        collectionService *services.CollectionService
+        workspaceService  *services.WorkspaceService
+        hub               *sse.Hub
+}
+
+func NewCollectionHandler(
+        collectionService *services.CollectionService,
+        workspaceService *services.WorkspaceService,
+        hub *sse.Hub,
+) *CollectionHandler <span class="cov0" title="0">{
+        return &amp;CollectionHandler{
+                collectionService: collectionService,
+                workspaceService:  workspaceService,
+                hub:               hub,
+        }
+}</span>
+
+func (h *CollectionHandler) Create(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canAccess, err := h.workspaceService.CanAccess(ctx, workspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.CreateCollectionRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collection, err := h.collectionService.Create(ctx, workspaceID, req.Name, req.Data, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to create collection")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(201, dto.CollectionResponse{
+                ID:          collection.ID,
+                WorkspaceID: collection.WorkspaceID,
+                Name:        collection.Name,
+                Data:        collection.Data,
+                Version:     collection.Version,
+                UpdatedBy:   collection.UpdatedBy,
+        })</span>
+}
+
+func (h *CollectionHandler) List(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canAccess, err := h.workspaceService.CanAccess(ctx, workspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collections, err := h.collectionService.GetByWorkspace(ctx, workspaceID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to get collections")
+                return
+        }</span>
+
+        <span class="cov0" title="0">response := make([]dto.CollectionResponse, len(collections))
+        for i, col := range collections </span><span class="cov0" title="0">{
+                response[i] = dto.CollectionResponse{
+                        ID:          col.ID,
+                        WorkspaceID: col.WorkspaceID,
+                        Name:        col.Name,
+                        Data:        col.Data,
+                        Version:     col.Version,
+                        UpdatedBy:   col.UpdatedBy,
+                }
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, response)</span>
+}
+
+func (h *CollectionHandler) Get(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collectionID, err := uuid.Parse(c.Param("collectionId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid collection id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        collection, err := h.collectionService.GetByID(ctx, collectionID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("collection not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">canAccess, err := h.workspaceService.CanAccess(ctx, collection.WorkspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("collection not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.CollectionResponse{
+                ID:          collection.ID,
+                WorkspaceID: collection.WorkspaceID,
+                Name:        collection.Name,
+                Data:        collection.Data,
+                Version:     collection.Version,
+                UpdatedBy:   collection.UpdatedBy,
+        })</span>
+}
+
+func (h *CollectionHandler) Update(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collectionID, err := uuid.Parse(c.Param("collectionId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid collection id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        existing, err := h.collectionService.GetByID(ctx, collectionID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("collection not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">canAccess, err := h.workspaceService.CanAccess(ctx, existing.WorkspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("collection not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.UpdateCollectionRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Version == 0 </span><span class="cov0" title="0">{
+                c.BadRequest("version is required for optimistic locking")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collection, err := h.collectionService.Update(ctx, collectionID, req.Name, req.Data, req.Version, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, services.ErrVersionConflict) </span><span class="cov0" title="0">{
+                        currentVersion := 0
+                        if col, _ := h.collectionService.GetByID(ctx, collectionID); col != nil </span><span class="cov0" title="0">{
+                                currentVersion = col.Version
+                        }</span>
+                        <span class="cov0" title="0">c.JSON(409, map[string]interface{}{
+                                "code":            "VERSION_CONFLICT",
+                                "message":         "collection has been modified by another user",
+                                "current_version": currentVersion,
+                        })
+                        return</span>
+                }
+                <span class="cov0" title="0">if errors.Is(err, services.ErrCollectionNotFound) </span><span class="cov0" title="0">{
+                        c.NotFound("collection not found")
+                        return
+                }</span>
+                <span class="cov0" title="0">if errors.Is(err, services.ErrNoFieldsToUpdate) </span><span class="cov0" title="0">{
+                        c.BadRequest("no fields to update")
+                        return
+                }</span>
+                <span class="cov0" title="0">c.InternalServerError("failed to update collection")
+                return</span>
+        }
+
+        <span class="cov0" title="0">h.hub.BroadcastCollectionUpdate(collection.WorkspaceID, collection.ID, userID, collection.Version)
+
+        c.JSON(200, dto.CollectionResponse{
+                ID:          collection.ID,
+                WorkspaceID: collection.WorkspaceID,
+                Name:        collection.Name,
+                Data:        collection.Data,
+                Version:     collection.Version,
+                UpdatedBy:   collection.UpdatedBy,
+        })</span>
+}
+
+func (h *CollectionHandler) Delete(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">collectionID, err := uuid.Parse(c.Param("collectionId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid collection id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        collection, err := h.collectionService.GetByID(ctx, collectionID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("collection not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">canModify, err := h.workspaceService.CanModify(ctx, collection.WorkspaceID, userID)
+        if err != nil || !canModify </span><span class="cov0" title="0">{
+                c.Forbidden("cannot delete this collection")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.collectionService.Delete(ctx, collectionID); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to delete collection")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "collection deleted"})</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package handlers
+
+import (
+        "context"
+        "fmt"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/internal/sse"
+        "github.com/google/uuid"
+)
+
+type SSEHandler struct {
+        hub              *sse.Hub
+        workspaceService *services.WorkspaceService
+}
+
+func NewSSEHandler(hub *sse.Hub, workspaceService *services.WorkspaceService) *SSEHandler <span class="cov0" title="0">{
+        return &amp;SSEHandler{
+                hub:              hub,
+                workspaceService: workspaceService,
+        }
+}</span>
+
+func (h *SSEHandler) Connect(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canAccess, err := h.workspaceService.CanAccess(ctx, workspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">sseCtx := c.SSE()
+
+        clientID := uuid.New().String()
+        client := &amp;sse.Client{
+                ID:         clientID,
+                UserID:     userID,
+                Workspaces: map[uuid.UUID]bool{workspaceID: true},
+                Send:       make(chan []byte, 256),
+        }
+
+        h.hub.Register(client)
+        defer h.hub.Unregister(client)
+
+        if err := sseCtx.SendJSON(map[string]string{
+                "type":      "connected",
+                "client_id": clientID,
+        }, "system", ""); err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">done := make(chan struct{})
+        go func() </span><span class="cov0" title="0">{
+                &lt;-c.Request.Context().Done()
+                close(done)
+        }</span>()
+
+        <span class="cov0" title="0">for </span><span class="cov0" title="0">{
+                select </span>{
+                case msg, ok := &lt;-client.Send:<span class="cov0" title="0">
+                        if !ok </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                        <span class="cov0" title="0">if err := sseCtx.Send(string(msg), "message", ""); err != nil </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                case &lt;-done:<span class="cov0" title="0">
+                        return</span>
+                }
+        }
+}
+
+func (h *SSEHandler) Subscribe(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">clientID := c.Param("clientId")
+        if clientID == "" </span><span class="cov0" title="0">{
+                c.BadRequest("client_id is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canAccess, err := h.workspaceService.CanAccess(ctx, workspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.hub.SubscribeToWorkspace(clientID, workspaceID)
+
+        c.JSON(200, map[string]string{
+                "message": fmt.Sprintf("subscribed to workspace %s", workspaceID),
+        })</span>
+}
+
+func (h *SSEHandler) Unsubscribe(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">clientID := c.Param("clientId")
+        if clientID == "" </span><span class="cov0" title="0">{
+                c.BadRequest("client_id is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">h.hub.UnsubscribeFromWorkspace(clientID, workspaceID)
+
+        c.JSON(200, map[string]string{
+                "message": fmt.Sprintf("unsubscribed from workspace %s", workspaceID),
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package handlers
+
+import (
+        "context"
+        "errors"
+
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/pkg/dto"
+        "github.com/google/uuid"
+        "github.com/m1z23r/drift/pkg/drift"
+)
+
+type TeamHandler struct {
+        teamService *services.TeamService
+        userService *services.UserService
+}
+
+func NewTeamHandler(teamService *services.TeamService, userService *services.UserService) *TeamHandler <span class="cov0" title="0">{
+        return &amp;TeamHandler{
+                teamService: teamService,
+                userService: userService,
+        }
+}</span>
+
+func (h *TeamHandler) Create(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.CreateTeamRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">team, err := h.teamService.Create(context.Background(), req.Name, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to create team")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(201, dto.TeamResponse{
+                ID:      team.ID,
+                Name:    team.Name,
+                OwnerID: team.OwnerID,
+                Role:    "owner",
+        })</span>
+}
+
+func (h *TeamHandler) List(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teams, roles, err := h.teamService.GetUserTeams(context.Background(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to get teams")
+                return
+        }</span>
+
+        <span class="cov0" title="0">response := make([]dto.TeamResponse, len(teams))
+        for i, team := range teams </span><span class="cov0" title="0">{
+                response[i] = dto.TeamResponse{
+                        ID:      team.ID,
+                        Name:    team.Name,
+                        OwnerID: team.OwnerID,
+                        Role:    roles[i],
+                }
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, response)</span>
+}
+
+func (h *TeamHandler) Get(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isMember, err := h.teamService.IsMember(context.Background(), teamID, userID)
+        if err != nil || !isMember </span><span class="cov0" title="0">{
+                c.NotFound("team not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">team, err := h.teamService.GetByID(context.Background(), teamID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("team not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">role := "member"
+        if team.OwnerID == userID </span><span class="cov0" title="0">{
+                role = "owner"
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.TeamResponse{
+                ID:      team.ID,
+                Name:    team.Name,
+                OwnerID: team.OwnerID,
+                Role:    role,
+        })</span>
+}
+
+func (h *TeamHandler) Update(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+        if err != nil || !isOwner </span><span class="cov0" title="0">{
+                c.Forbidden("only owner can update team")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.UpdateTeamRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">team, err := h.teamService.Update(context.Background(), teamID, req.Name)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to update team")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.TeamResponse{
+                ID:      team.ID,
+                Name:    team.Name,
+                OwnerID: team.OwnerID,
+                Role:    "owner",
+        })</span>
+}
+
+func (h *TeamHandler) Delete(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+        if err != nil || !isOwner </span><span class="cov0" title="0">{
+                c.Forbidden("only owner can delete team")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.teamService.Delete(context.Background(), teamID); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to delete team")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "team deleted"})</span>
+}
+
+func (h *TeamHandler) GetMembers(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isMember, err := h.teamService.IsMember(context.Background(), teamID, userID)
+        if err != nil || !isMember </span><span class="cov0" title="0">{
+                c.NotFound("team not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">members, err := h.teamService.GetMembers(context.Background(), teamID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to get members")
+                return
+        }</span>
+
+        <span class="cov0" title="0">response := make([]dto.TeamMemberResponse, len(members))
+        for i, m := range members </span><span class="cov0" title="0">{
+                response[i] = dto.TeamMemberResponse{
+                        ID:     m.ID,
+                        UserID: m.UserID,
+                        Role:   m.Role,
+                        User: dto.UserResponse{
+                                ID:        m.User.ID,
+                                Email:     m.User.Email,
+                                Name:      m.User.Name,
+                                AvatarURL: m.User.AvatarURL,
+                                Provider:  m.User.Provider,
+                        },
+                }
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, response)</span>
+}
+
+func (h *TeamHandler) InviteMember(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+        if err != nil || !isOwner </span><span class="cov0" title="0">{
+                c.Forbidden("only owner can invite members")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.InviteMemberRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Email == "" </span><span class="cov0" title="0">{
+                c.BadRequest("email is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">invitee, err := h.userService.GetByEmail(context.Background(), req.Email)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("user with this email not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.teamService.AddMember(context.Background(), teamID, invitee.ID); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to add member")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "member added"})</span>
+}
+
+func (h *TeamHandler) RemoveMember(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">memberID, err := uuid.Parse(c.Param("memberId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid member id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+        if err != nil || !isOwner </span><span class="cov0" title="0">{
+                c.Forbidden("only owner can remove members")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if memberID == userID </span><span class="cov0" title="0">{
+                c.BadRequest("cannot remove yourself as owner")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.teamService.RemoveMember(context.Background(), teamID, memberID); err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, services.ErrCannotRemoveOwner) </span><span class="cov0" title="0">{
+                        c.BadRequest("cannot remove team owner")
+                        return
+                }</span>
+                <span class="cov0" title="0">if errors.Is(err, services.ErrMemberNotFound) </span><span class="cov0" title="0">{
+                        c.NotFound("member not found")
+                        return
+                }</span>
+                <span class="cov0" title="0">c.InternalServerError("failed to remove member")
+                return</span>
+        }
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "member removed"})</span>
+}
+
+func (h *TeamHandler) LeaveTeam(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">teamID, err := uuid.Parse(c.Param("id"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid team id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.teamService.RemoveMember(context.Background(), teamID, userID); err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, services.ErrCannotRemoveOwner) </span><span class="cov0" title="0">{
+                        c.BadRequest("owner cannot leave team, transfer ownership or delete it")
+                        return
+                }</span>
+                <span class="cov0" title="0">if errors.Is(err, services.ErrMemberNotFound) </span><span class="cov0" title="0">{
+                        c.NotFound("team not found or not a member")
+                        return
+                }</span>
+                <span class="cov0" title="0">c.InternalServerError("failed to leave team")
+                return</span>
+        }
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "left team"})</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package handlers
+
+import (
+        "context"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/pkg/dto"
+        "github.com/google/uuid"
+)
+
+type UserHandler struct {
+        userService *services.UserService
+}
+
+func NewUserHandler(userService *services.UserService) *UserHandler <span class="cov0" title="0">{
+        return &amp;UserHandler{userService: userService}
+}</span>
+
+func (h *UserHandler) GetMe(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">user, err := h.userService.GetByID(context.Background(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("user not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.UserResponse{
+                ID:        user.ID,
+                Email:     user.Email,
+                Name:      user.Name,
+                AvatarURL: user.AvatarURL,
+                Provider:  user.Provider,
+        })</span>
+}
+
+func (h *UserHandler) UpdateMe(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.UpdateUserRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">user, err := h.userService.Update(context.Background(), userID, req.Name)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to update user")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.UserResponse{
+                ID:        user.ID,
+                Email:     user.Email,
+                Name:      user.Name,
+                AvatarURL: user.AvatarURL,
+                Provider:  user.Provider,
+        })</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package handlers
+
+import (
+        "context"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/middleware"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/dimitrije/nikode-api/pkg/dto"
+        "github.com/google/uuid"
+)
+
+type WorkspaceHandler struct {
+        workspaceService *services.WorkspaceService
+        teamService      *services.TeamService
+}
+
+func NewWorkspaceHandler(workspaceService *services.WorkspaceService, teamService *services.TeamService) *WorkspaceHandler <span class="cov0" title="0">{
+        return &amp;WorkspaceHandler{
+                workspaceService: workspaceService,
+                teamService:      teamService,
+        }
+}</span>
+
+func (h *WorkspaceHandler) Create(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.CreateWorkspaceRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        if req.TeamID != nil </span><span class="cov0" title="0">{
+                isMember, err := h.teamService.IsMember(ctx, *req.TeamID, userID)
+                if err != nil || !isMember </span><span class="cov0" title="0">{
+                        c.Forbidden("not a member of this team")
+                        return
+                }</span>
+        }
+
+        <span class="cov0" title="0">workspace, err := h.workspaceService.Create(ctx, req.Name, userID, req.TeamID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to create workspace")
+                return
+        }</span>
+
+        <span class="cov0" title="0">wsType := "personal"
+        if workspace.TeamID != nil </span><span class="cov0" title="0">{
+                wsType = "team"
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(201, dto.WorkspaceResponse{
+                ID:     workspace.ID,
+                Name:   workspace.Name,
+                UserID: workspace.UserID,
+                TeamID: workspace.TeamID,
+                Type:   wsType,
+        })</span>
+}
+
+func (h *WorkspaceHandler) List(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaces, err := h.workspaceService.GetUserWorkspaces(context.Background(), userID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to get workspaces")
+                return
+        }</span>
+
+        <span class="cov0" title="0">response := make([]dto.WorkspaceResponse, len(workspaces))
+        for i, w := range workspaces </span><span class="cov0" title="0">{
+                wsType := "personal"
+                if w.TeamID != nil </span><span class="cov0" title="0">{
+                        wsType = "team"
+                }</span>
+                <span class="cov0" title="0">response[i] = dto.WorkspaceResponse{
+                        ID:     w.ID,
+                        Name:   w.Name,
+                        UserID: w.UserID,
+                        TeamID: w.TeamID,
+                        Type:   wsType,
+                }</span>
+        }
+
+        <span class="cov0" title="0">c.JSON(200, response)</span>
+}
+
+func (h *WorkspaceHandler) Get(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canAccess, err := h.workspaceService.CanAccess(ctx, workspaceID, userID)
+        if err != nil || !canAccess </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspace, err := h.workspaceService.GetByID(ctx, workspaceID)
+        if err != nil </span><span class="cov0" title="0">{
+                c.NotFound("workspace not found")
+                return
+        }</span>
+
+        <span class="cov0" title="0">wsType := "personal"
+        if workspace.TeamID != nil </span><span class="cov0" title="0">{
+                wsType = "team"
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.WorkspaceResponse{
+                ID:     workspace.ID,
+                Name:   workspace.Name,
+                UserID: workspace.UserID,
+                TeamID: workspace.TeamID,
+                Type:   wsType,
+        })</span>
+}
+
+func (h *WorkspaceHandler) Update(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canModify, err := h.workspaceService.CanModify(ctx, workspaceID, userID)
+        if err != nil || !canModify </span><span class="cov0" title="0">{
+                c.Forbidden("cannot modify this workspace")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req dto.UpdateWorkspaceRequest
+        if err := c.BindJSON(&amp;req); err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid request body")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                c.BadRequest("name is required")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspace, err := h.workspaceService.Update(ctx, workspaceID, req.Name)
+        if err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to update workspace")
+                return
+        }</span>
+
+        <span class="cov0" title="0">wsType := "personal"
+        if workspace.TeamID != nil </span><span class="cov0" title="0">{
+                wsType = "team"
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, dto.WorkspaceResponse{
+                ID:     workspace.ID,
+                Name:   workspace.Name,
+                UserID: workspace.UserID,
+                TeamID: workspace.TeamID,
+                Type:   wsType,
+        })</span>
+}
+
+func (h *WorkspaceHandler) Delete(c *drift.Context) <span class="cov0" title="0">{
+        userID := middleware.GetUserID(c)
+        if userID == uuid.Nil </span><span class="cov0" title="0">{
+                c.Unauthorized("not authenticated")
+                return
+        }</span>
+
+        <span class="cov0" title="0">workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+        if err != nil </span><span class="cov0" title="0">{
+                c.BadRequest("invalid workspace id")
+                return
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+
+        canModify, err := h.workspaceService.CanModify(ctx, workspaceID, userID)
+        if err != nil || !canModify </span><span class="cov0" title="0">{
+                c.Forbidden("cannot delete this workspace")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if err := h.workspaceService.Delete(ctx, workspaceID); err != nil </span><span class="cov0" title="0">{
+                c.InternalServerError("failed to delete workspace")
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(200, map[string]string{"message": "workspace deleted"})</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package middleware
+
+import (
+        "strings"
+
+        "github.com/m1z23r/drift/pkg/drift"
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/google/uuid"
+)
+
+const (
+        UserIDKey    = "user_id"
+        UserEmailKey = "user_email"
+)
+
+func Auth(jwtService *services.JWTService) drift.HandlerFunc <span class="cov9" title="8">{
+        return func(c *drift.Context) </span><span class="cov10" title="10">{
+                authHeader := c.GetHeader("Authorization")
+                if authHeader == "" </span><span class="cov1" title="1">{
+                        c.Unauthorized("missing authorization header")
+                        return
+                }</span>
+
+                <span class="cov9" title="9">parts := strings.SplitN(authHeader, " ", 2)
+                if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" </span><span class="cov3" title="2">{
+                        c.Unauthorized("invalid authorization header format")
+                        return
+                }</span>
+
+                <span class="cov8" title="7">claims, err := jwtService.ValidateAccessToken(parts[1])
+                if err != nil </span><span class="cov5" title="3">{
+                        c.Unauthorized("invalid or expired token")
+                        return
+                }</span>
+
+                <span class="cov6" title="4">c.Set(UserIDKey, claims.UserID)
+                c.Set(UserEmailKey, claims.Email)
+
+                c.Next()</span>
+        }
+}
+
+func GetUserID(c *drift.Context) uuid.UUID <span class="cov3" title="2">{
+        if id, ok := c.Get(UserIDKey); ok </span><span class="cov1" title="1">{
+                if uid, ok := id.(uuid.UUID); ok </span><span class="cov1" title="1">{
+                        return uid
+                }</span>
+        }
+        <span class="cov1" title="1">return uuid.Nil</span>
+}
+
+func GetUserEmail(c *drift.Context) string <span class="cov3" title="2">{
+        if email, ok := c.Get(UserEmailKey); ok </span><span class="cov1" title="1">{
+                if e, ok := email.(string); ok </span><span class="cov1" title="1">{
+                        return e
+                }</span>
+        }
+        <span class="cov1" title="1">return ""</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package models
+
+import (
+        "time"
+
+        "github.com/google/uuid"
+)
+
+type Workspace struct {
+        ID        uuid.UUID  `json:"id"`
+        Name      string     `json:"name"`
+        UserID    *uuid.UUID `json:"user_id,omitempty"`
+        TeamID    *uuid.UUID `json:"team_id,omitempty"`
+        CreatedAt time.Time  `json:"created_at"`
+        UpdatedAt time.Time  `json:"updated_at"`
+}
+
+func (w *Workspace) IsPersonal() bool <span class="cov0" title="0">{
+        return w.UserID != nil
+}</span>
+
+func (w *Workspace) IsTeam() bool <span class="cov0" title="0">{
+        return w.TeamID != nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package oauth
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+
+        "github.com/dimitrije/nikode-api/internal/config"
+        "golang.org/x/oauth2"
+        "golang.org/x/oauth2/github"
+)
+
+type GitHubProvider struct {
+        config *oauth2.Config
+}
+
+func NewGitHubProvider(cfg config.OAuthConfig) *GitHubProvider <span class="cov10" title="2">{
+        return &amp;GitHubProvider{
+                config: &amp;oauth2.Config{
+                        ClientID:     cfg.ClientID,
+                        ClientSecret: cfg.ClientSecret,
+                        RedirectURL:  cfg.RedirectURL,
+                        Scopes:       []string{"user:email", "read:user"},
+                        Endpoint:     github.Endpoint,
+                },
+        }
+}</span>
+
+func (p *GitHubProvider) Name() string <span class="cov1" title="1">{
+        return "github"
+}</span>
+
+func (p *GitHubProvider) GetConsentURL(state string) string <span class="cov1" title="1">{
+        return p.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}</span>
+
+func (p *GitHubProvider) ExchangeCode(ctx context.Context, code string) (*UserInfo, error) <span class="cov0" title="0">{
+        token, err := p.config.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to exchange code: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">client := p.config.Client(ctx, token)
+
+        userResp, err := client.Get("https://api.github.com/user")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get user info: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer userResp.Body.Close()
+
+        if userResp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("github api returned status %d", userResp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var ghUser struct {
+                ID        int    `json:"id"`
+                Login     string `json:"login"`
+                Name      string `json:"name"`
+                Email     string `json:"email"`
+                AvatarURL string `json:"avatar_url"`
+        }
+
+        if err := json.NewDecoder(userResp.Body).Decode(&amp;ghUser); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode user info: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">email := ghUser.Email
+        if email == "" </span><span class="cov0" title="0">{
+                email, err = p.getPrimaryEmail(ctx, client)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+
+        <span class="cov0" title="0">name := ghUser.Name
+        if name == "" </span><span class="cov0" title="0">{
+                name = ghUser.Login
+        }</span>
+
+        <span class="cov0" title="0">return &amp;UserInfo{
+                Email:     email,
+                Name:      name,
+                AvatarURL: ghUser.AvatarURL,
+                ID:        fmt.Sprintf("%d", ghUser.ID),
+                Provider:  "github",
+        }, nil</span>
+}
+
+func (p *GitHubProvider) getPrimaryEmail(ctx context.Context, client *http.Client) (string, error) <span class="cov0" title="0">{
+        resp, err := client.Get("https://api.github.com/user/emails")
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get user emails: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        var emails []struct {
+                Email    string `json:"email"`
+                Primary  bool   `json:"primary"`
+                Verified bool   `json:"verified"`
+        }
+
+        if err := json.NewDecoder(resp.Body).Decode(&amp;emails); err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to decode emails: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">for _, e := range emails </span><span class="cov0" title="0">{
+                if e.Primary &amp;&amp; e.Verified </span><span class="cov0" title="0">{
+                        return e.Email, nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">for _, e := range emails </span><span class="cov0" title="0">{
+                if e.Verified </span><span class="cov0" title="0">{
+                        return e.Email, nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">if len(emails) &gt; 0 </span><span class="cov0" title="0">{
+                return emails[0].Email, nil
+        }</span>
+
+        <span class="cov0" title="0">return "", fmt.Errorf("no email found")</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package oauth
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+
+        "github.com/dimitrije/nikode-api/internal/config"
+        "golang.org/x/oauth2"
+)
+
+var gitlabEndpoint = oauth2.Endpoint{
+        AuthURL:  "https://gitlab.com/oauth/authorize",
+        TokenURL: "https://gitlab.com/oauth/token",
+}
+
+type GitLabProvider struct {
+        config *oauth2.Config
+}
+
+func NewGitLabProvider(cfg config.OAuthConfig) *GitLabProvider <span class="cov10" title="4">{
+        return &amp;GitLabProvider{
+                config: &amp;oauth2.Config{
+                        ClientID:     cfg.ClientID,
+                        ClientSecret: cfg.ClientSecret,
+                        RedirectURL:  cfg.RedirectURL,
+                        Scopes:       []string{"read_user"},
+                        Endpoint:     gitlabEndpoint,
+                },
+        }
+}</span>
+
+func (p *GitLabProvider) Name() string <span class="cov1" title="1">{
+        return "gitlab"
+}</span>
+
+func (p *GitLabProvider) GetConsentURL(state string) string <span class="cov1" title="1">{
+        return p.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}</span>
+
+func (p *GitLabProvider) ExchangeCode(ctx context.Context, code string) (*UserInfo, error) <span class="cov0" title="0">{
+        token, err := p.config.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to exchange code: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">client := p.config.Client(ctx, token)
+
+        resp, err := client.Get("https://gitlab.com/api/v4/user")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get user info: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gitlab api returned status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var glUser struct {
+                ID        int    `json:"id"`
+                Username  string `json:"username"`
+                Name      string `json:"name"`
+                Email     string `json:"email"`
+                AvatarURL string `json:"avatar_url"`
+        }
+
+        if err := json.NewDecoder(resp.Body).Decode(&amp;glUser); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode user info: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">name := glUser.Name
+        if name == "" </span><span class="cov0" title="0">{
+                name = glUser.Username
+        }</span>
+
+        <span class="cov0" title="0">return &amp;UserInfo{
+                Email:     glUser.Email,
+                Name:      name,
+                AvatarURL: glUser.AvatarURL,
+                ID:        fmt.Sprintf("%d", glUser.ID),
+                Provider:  "gitlab",
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package oauth
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+
+        "github.com/dimitrije/nikode-api/internal/config"
+        "golang.org/x/oauth2"
+        "golang.org/x/oauth2/google"
+)
+
+type GoogleProvider struct {
+        config *oauth2.Config
+}
+
+func NewGoogleProvider(cfg config.OAuthConfig) *GoogleProvider <span class="cov10" title="4">{
+        return &amp;GoogleProvider{
+                config: &amp;oauth2.Config{
+                        ClientID:     cfg.ClientID,
+                        ClientSecret: cfg.ClientSecret,
+                        RedirectURL:  cfg.RedirectURL,
+                        Scopes: []string{
+                                "https://www.googleapis.com/auth/userinfo.email",
+                                "https://www.googleapis.com/auth/userinfo.profile",
+                        },
+                        Endpoint: google.Endpoint,
+                },
+        }
+}</span>
+
+func (p *GoogleProvider) Name() string <span class="cov1" title="1">{
+        return "google"
+}</span>
+
+func (p *GoogleProvider) GetConsentURL(state string) string <span class="cov1" title="1">{
+        return p.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+}</span>
+
+func (p *GoogleProvider) ExchangeCode(ctx context.Context, code string) (*UserInfo, error) <span class="cov0" title="0">{
+        token, err := p.config.Exchange(ctx, code)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to exchange code: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">client := p.config.Client(ctx, token)
+
+        resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get user info: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("google api returned status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var gUser struct {
+                ID            string `json:"id"`
+                Email         string `json:"email"`
+                VerifiedEmail bool   `json:"verified_email"`
+                Name          string `json:"name"`
+                Picture       string `json:"picture"`
+        }
+
+        if err := json.NewDecoder(resp.Body).Decode(&amp;gUser); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode user info: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;UserInfo{
+                Email:     gUser.Email,
+                Name:      gUser.Name,
+                AvatarURL: gUser.Picture,
+                ID:        gUser.ID,
+                Provider:  "google",
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package oauth
+
+import (
+        "context"
+        "crypto/rand"
+        "encoding/base64"
+)
+
+type UserInfo struct {
+        Email     string
+        Name      string
+        AvatarURL string
+        ID        string
+        Provider  string
+}
+
+type Provider interface {
+        GetConsentURL(state string) string
+        ExchangeCode(ctx context.Context, code string) (*UserInfo, error)
+        Name() string
+}
+
+func GenerateState() (string, error) <span class="cov10" title="2">{
+        b := make([]byte, 32)
+        if _, err := rand.Read(b); err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov10" title="2">return base64.URLEncoding.EncodeToString(b), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package services
+
+import (
+        "context"
+        "encoding/json"
+        "errors"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/google/uuid"
+)
+
+var (
+        ErrVersionConflict  = errors.New("version conflict: collection has been modified")
+        ErrCollectionNotFound = errors.New("collection not found")
+        ErrNoFieldsToUpdate = errors.New("no fields to update")
+)
+
+type CollectionService struct {
+        db *database.DB
+}
+
+func NewCollectionService(db *database.DB) *CollectionService <span class="cov10" title="12">{
+        return &amp;CollectionService{db: db}
+}</span>
+
+func (s *CollectionService) Create(ctx context.Context, workspaceID uuid.UUID, name string, data json.RawMessage, userID uuid.UUID) (*models.Collection, error) <span class="cov3" title="2">{
+        if data == nil </span><span class="cov1" title="1">{
+                data = json.RawMessage("{}")
+        }</span>
+
+        <span class="cov3" title="2">var collection models.Collection
+        err := s.db.Pool.QueryRow(ctx, `
+                INSERT INTO collections (workspace_id, name, data, updated_by)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+        `, workspaceID, name, data, userID).Scan(
+                &amp;collection.ID, &amp;collection.WorkspaceID, &amp;collection.Name,
+                &amp;collection.Data, &amp;collection.Version, &amp;collection.UpdatedBy,
+                &amp;collection.CreatedAt, &amp;collection.UpdatedAt,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">return &amp;collection, nil</span>
+}
+
+func (s *CollectionService) GetByID(ctx context.Context, collectionID uuid.UUID) (*models.Collection, error) <span class="cov3" title="2">{
+        var collection models.Collection
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, workspace_id, name, data, version, updated_by, created_at, updated_at
+                FROM collections WHERE id = $1
+        `, collectionID).Scan(
+                &amp;collection.ID, &amp;collection.WorkspaceID, &amp;collection.Name,
+                &amp;collection.Data, &amp;collection.Version, &amp;collection.UpdatedBy,
+                &amp;collection.CreatedAt, &amp;collection.UpdatedAt,
+        )
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;collection, nil</span>
+}
+
+func (s *CollectionService) GetByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]models.Collection, error) <span class="cov1" title="1">{
+        rows, err := s.db.Pool.Query(ctx, `
+                SELECT id, workspace_id, name, data, version, updated_by, created_at, updated_at
+                FROM collections WHERE workspace_id = $1
+                ORDER BY created_at DESC
+        `, workspaceID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">defer rows.Close()
+
+        var collections []models.Collection
+        for rows.Next() </span><span class="cov3" title="2">{
+                var c models.Collection
+                if err := rows.Scan(
+                        &amp;c.ID, &amp;c.WorkspaceID, &amp;c.Name, &amp;c.Data, &amp;c.Version,
+                        &amp;c.UpdatedBy, &amp;c.CreatedAt, &amp;c.UpdatedAt,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov3" title="2">collections = append(collections, c)</span>
+        }
+        <span class="cov1" title="1">return collections, nil</span>
+}
+
+func (s *CollectionService) Update(ctx context.Context, collectionID uuid.UUID, name *string, data json.RawMessage, expectedVersion int, userID uuid.UUID) (*models.Collection, error) <span class="cov7" title="6">{
+        var collection models.Collection
+
+        if name != nil &amp;&amp; data != nil </span><span class="cov1" title="1">{
+                err := s.db.Pool.QueryRow(ctx, `
+                        UPDATE collections
+                        SET name = $1, data = $2, version = version + 1, updated_by = $3, updated_at = NOW()
+                        WHERE id = $4 AND version = $5
+                        RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+                `, *name, data, userID, collectionID, expectedVersion).Scan(
+                        &amp;collection.ID, &amp;collection.WorkspaceID, &amp;collection.Name,
+                        &amp;collection.Data, &amp;collection.Version, &amp;collection.UpdatedBy,
+                        &amp;collection.CreatedAt, &amp;collection.UpdatedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, s.checkVersionConflict(ctx, collectionID, expectedVersion, err)
+                }</span>
+        } else<span class="cov6" title="5"> if name != nil </span><span class="cov4" title="3">{
+                err := s.db.Pool.QueryRow(ctx, `
+                        UPDATE collections
+                        SET name = $1, version = version + 1, updated_by = $2, updated_at = NOW()
+                        WHERE id = $3 AND version = $4
+                        RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+                `, *name, userID, collectionID, expectedVersion).Scan(
+                        &amp;collection.ID, &amp;collection.WorkspaceID, &amp;collection.Name,
+                        &amp;collection.Data, &amp;collection.Version, &amp;collection.UpdatedBy,
+                        &amp;collection.CreatedAt, &amp;collection.UpdatedAt,
+                )
+                if err != nil </span><span class="cov3" title="2">{
+                        return nil, s.checkVersionConflict(ctx, collectionID, expectedVersion, err)
+                }</span>
+        } else<span class="cov3" title="2"> if data != nil </span><span class="cov1" title="1">{
+                err := s.db.Pool.QueryRow(ctx, `
+                        UPDATE collections
+                        SET data = $1, version = version + 1, updated_by = $2, updated_at = NOW()
+                        WHERE id = $3 AND version = $4
+                        RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+                `, data, userID, collectionID, expectedVersion).Scan(
+                        &amp;collection.ID, &amp;collection.WorkspaceID, &amp;collection.Name,
+                        &amp;collection.Data, &amp;collection.Version, &amp;collection.UpdatedBy,
+                        &amp;collection.CreatedAt, &amp;collection.UpdatedAt,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, s.checkVersionConflict(ctx, collectionID, expectedVersion, err)
+                }</span>
+        } else<span class="cov1" title="1"> {
+                return nil, ErrNoFieldsToUpdate
+        }</span>
+
+        <span class="cov4" title="3">return &amp;collection, nil</span>
+}
+
+func (s *CollectionService) checkVersionConflict(ctx context.Context, collectionID uuid.UUID, expectedVersion int, originalErr error) error <span class="cov3" title="2">{
+        var currentVersion int
+        err := s.db.Pool.QueryRow(ctx, `SELECT version FROM collections WHERE id = $1`, collectionID).Scan(&amp;currentVersion)
+        if err != nil </span><span class="cov1" title="1">{
+                return ErrCollectionNotFound
+        }</span>
+        <span class="cov1" title="1">if currentVersion != expectedVersion </span><span class="cov1" title="1">{
+                return ErrVersionConflict
+        }</span>
+        <span class="cov0" title="0">return originalErr</span>
+}
+
+func (s *CollectionService) Delete(ctx context.Context, collectionID uuid.UUID) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM collections WHERE id = $1`, collectionID)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">package services
+
+import (
+        "crypto/sha256"
+        "encoding/hex"
+        "fmt"
+        "time"
+
+        "github.com/golang-jwt/jwt/v5"
+        "github.com/google/uuid"
+)
+
+type JWTService struct {
+        secret        []byte
+        accessExpiry  time.Duration
+        refreshExpiry time.Duration
+}
+
+type Claims struct {
+        UserID uuid.UUID `json:"user_id"`
+        Email  string    `json:"email"`
+        jwt.RegisteredClaims
+}
+
+type TokenPair struct {
+        AccessToken  string
+        RefreshToken string
+        ExpiresIn    int64
+}
+
+func NewJWTService(secret string, accessExpiry, refreshExpiry time.Duration) *JWTService <span class="cov10" title="12">{
+        return &amp;JWTService{
+                secret:        []byte(secret),
+                accessExpiry:  accessExpiry,
+                refreshExpiry: refreshExpiry,
+        }
+}</span>
+
+func (s *JWTService) GenerateTokenPair(userID uuid.UUID, email string) (*TokenPair, error) <span class="cov8" title="9">{
+        now := time.Now()
+
+        accessClaims := Claims{
+                UserID: userID,
+                Email:  email,
+                RegisteredClaims: jwt.RegisteredClaims{
+                        ExpiresAt: jwt.NewNumericDate(now.Add(s.accessExpiry)),
+                        IssuedAt:  jwt.NewNumericDate(now),
+                        NotBefore: jwt.NewNumericDate(now),
+                        Issuer:    "nikode-api",
+                        Subject:   userID.String(),
+                },
+        }
+
+        accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+        accessTokenString, err := accessToken.SignedString(s.secret)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to sign access token: %w", err)
+        }</span>
+
+        <span class="cov8" title="9">refreshClaims := jwt.RegisteredClaims{
+                ExpiresAt: jwt.NewNumericDate(now.Add(s.refreshExpiry)),
+                IssuedAt:  jwt.NewNumericDate(now),
+                NotBefore: jwt.NewNumericDate(now),
+                Issuer:    "nikode-api",
+                Subject:   userID.String(),
+                ID:        uuid.New().String(),
+        }
+
+        refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+        refreshTokenString, err := refreshToken.SignedString(s.secret)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to sign refresh token: %w", err)
+        }</span>
+
+        <span class="cov8" title="9">return &amp;TokenPair{
+                AccessToken:  accessTokenString,
+                RefreshToken: refreshTokenString,
+                ExpiresIn:    int64(s.accessExpiry.Seconds()),
+        }, nil</span>
+}
+
+func (s *JWTService) ValidateAccessToken(tokenString string) (*Claims, error) <span class="cov7" title="6">{
+        token, err := jwt.ParseWithClaims(tokenString, &amp;Claims{}, func(token *jwt.Token) (interface{}, error) </span><span class="cov4" title="3">{
+                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+                }</span>
+                <span class="cov4" title="3">return s.secret, nil</span>
+        })
+
+        <span class="cov7" title="6">if err != nil </span><span class="cov6" title="5">{
+                return nil, fmt.Errorf("failed to parse token: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">claims, ok := token.Claims.(*Claims)
+        if !ok || !token.Valid </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("invalid token")
+        }</span>
+
+        <span class="cov1" title="1">return claims, nil</span>
+}
+
+func (s *JWTService) ValidateRefreshToken(tokenString string) (uuid.UUID, error) <span class="cov4" title="3">{
+        token, err := jwt.ParseWithClaims(tokenString, &amp;jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) </span><span class="cov4" title="3">{
+                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+                }</span>
+                <span class="cov4" title="3">return s.secret, nil</span>
+        })
+
+        <span class="cov4" title="3">if err != nil </span><span class="cov3" title="2">{
+                return uuid.Nil, fmt.Errorf("failed to parse refresh token: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">claims, ok := token.Claims.(*jwt.RegisteredClaims)
+        if !ok || !token.Valid </span><span class="cov0" title="0">{
+                return uuid.Nil, fmt.Errorf("invalid refresh token")
+        }</span>
+
+        <span class="cov1" title="1">userID, err := uuid.Parse(claims.Subject)
+        if err != nil </span><span class="cov0" title="0">{
+                return uuid.Nil, fmt.Errorf("invalid user id in token: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">return userID, nil</span>
+}
+
+func (s *JWTService) RefreshExpiry() time.Duration <span class="cov1" title="1">{
+        return s.refreshExpiry
+}</span>
+
+func HashToken(token string) string <span class="cov4" title="3">{
+        hash := sha256.Sum256([]byte(token))
+        return hex.EncodeToString(hash[:])
+}</span>
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package services
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/google/uuid"
+)
+
+var (
+        ErrCannotRemoveOwner = errors.New("cannot remove team owner")
+        ErrMemberNotFound    = errors.New("member not found")
+)
+
+type TeamService struct {
+        db *database.DB
+}
+
+func NewTeamService(db *database.DB) *TeamService <span class="cov10" title="30">{
+        return &amp;TeamService{db: db}
+}</span>
+
+func (s *TeamService) Create(ctx context.Context, name string, ownerID uuid.UUID) (*models.Team, error) <span class="cov2" title="2">{
+        tx, err := s.db.Pool.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to begin transaction: %w", err)
+        }</span>
+        <span class="cov2" title="2">defer tx.Rollback(ctx)
+
+        var team models.Team
+        err = tx.QueryRow(ctx, `
+                INSERT INTO teams (name, owner_id)
+                VALUES ($1, $2)
+                RETURNING id, name, owner_id, created_at, updated_at
+        `, name, ownerID).Scan(&amp;team.ID, &amp;team.Name, &amp;team.OwnerID, &amp;team.CreatedAt, &amp;team.UpdatedAt)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create team: %w", err)
+        }</span>
+
+        <span class="cov2" title="2">_, err = tx.Exec(ctx, `
+                INSERT INTO team_members (team_id, user_id, role)
+                VALUES ($1, $2, $3)
+        `, team.ID, ownerID, models.RoleOwner)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to add owner as member: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">if err := tx.Commit(ctx); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to commit transaction: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">return &amp;team, nil</span>
+}
+
+func (s *TeamService) GetByID(ctx context.Context, teamID uuid.UUID) (*models.Team, error) <span class="cov2" title="2">{
+        var team models.Team
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, name, owner_id, created_at, updated_at
+                FROM teams WHERE id = $1
+        `, teamID).Scan(&amp;team.ID, &amp;team.Name, &amp;team.OwnerID, &amp;team.CreatedAt, &amp;team.UpdatedAt)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;team, nil</span>
+}
+
+func (s *TeamService) GetUserTeams(ctx context.Context, userID uuid.UUID) ([]models.Team, []string, error) <span class="cov1" title="1">{
+        rows, err := s.db.Pool.Query(ctx, `
+                SELECT t.id, t.name, t.owner_id, t.created_at, t.updated_at, tm.role
+                FROM teams t
+                JOIN team_members tm ON t.id = tm.team_id
+                WHERE tm.user_id = $1
+                ORDER BY t.created_at DESC
+        `, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, err
+        }</span>
+        <span class="cov1" title="1">defer rows.Close()
+
+        var teams []models.Team
+        var roles []string
+        for rows.Next() </span><span class="cov2" title="2">{
+                var team models.Team
+                var role string
+                if err := rows.Scan(&amp;team.ID, &amp;team.Name, &amp;team.OwnerID, &amp;team.CreatedAt, &amp;team.UpdatedAt, &amp;role); err != nil </span><span class="cov0" title="0">{
+                        return nil, nil, err
+                }</span>
+                <span class="cov2" title="2">teams = append(teams, team)
+                roles = append(roles, role)</span>
+        }
+        <span class="cov1" title="1">return teams, roles, nil</span>
+}
+
+func (s *TeamService) Update(ctx context.Context, teamID uuid.UUID, name string) (*models.Team, error) <span class="cov1" title="1">{
+        var team models.Team
+        err := s.db.Pool.QueryRow(ctx, `
+                UPDATE teams SET name = $1, updated_at = NOW()
+                WHERE id = $2
+                RETURNING id, name, owner_id, created_at, updated_at
+        `, name, teamID).Scan(&amp;team.ID, &amp;team.Name, &amp;team.OwnerID, &amp;team.CreatedAt, &amp;team.UpdatedAt)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;team, nil</span>
+}
+
+func (s *TeamService) Delete(ctx context.Context, teamID uuid.UUID) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM teams WHERE id = $1`, teamID)
+        return err
+}</span>
+
+func (s *TeamService) IsOwner(ctx context.Context, teamID, userID uuid.UUID) (bool, error) <span class="cov4" title="4">{
+        var ownerID uuid.UUID
+        err := s.db.Pool.QueryRow(ctx, `SELECT owner_id FROM teams WHERE id = $1`, teamID).Scan(&amp;ownerID)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+        <span class="cov4" title="4">return ownerID == userID, nil</span>
+}
+
+func (s *TeamService) IsMember(ctx context.Context, teamID, userID uuid.UUID) (bool, error) <span class="cov4" title="4">{
+        var exists bool
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT EXISTS(SELECT 1 FROM team_members WHERE team_id = $1 AND user_id = $2)
+        `, teamID, userID).Scan(&amp;exists)
+        return exists, err
+}</span>
+
+func (s *TeamService) GetMembers(ctx context.Context, teamID uuid.UUID) ([]models.TeamMember, error) <span class="cov1" title="1">{
+        rows, err := s.db.Pool.Query(ctx, `
+                SELECT tm.id, tm.team_id, tm.user_id, tm.role, tm.created_at,
+                       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                WHERE tm.team_id = $1
+                ORDER BY tm.created_at
+        `, teamID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">defer rows.Close()
+
+        var members []models.TeamMember
+        for rows.Next() </span><span class="cov1" title="1">{
+                var member models.TeamMember
+                var user models.User
+                if err := rows.Scan(
+                        &amp;member.ID, &amp;member.TeamID, &amp;member.UserID, &amp;member.Role, &amp;member.CreatedAt,
+                        &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL, &amp;user.Provider, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+                ); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">member.User = &amp;user
+                members = append(members, member)</span>
+        }
+        <span class="cov1" title="1">return members, nil</span>
+}
+
+func (s *TeamService) AddMember(ctx context.Context, teamID, userID uuid.UUID) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `
+                INSERT INTO team_members (team_id, user_id, role)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (team_id, user_id) DO NOTHING
+        `, teamID, userID, models.RoleMember)
+        return err
+}</span>
+
+func (s *TeamService) RemoveMember(ctx context.Context, teamID, userID uuid.UUID) error <span class="cov3" title="3">{
+        var role string
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT role FROM team_members WHERE team_id = $1 AND user_id = $2
+        `, teamID, userID).Scan(&amp;role)
+        if err != nil </span><span class="cov1" title="1">{
+                return ErrMemberNotFound
+        }</span>
+
+        <span class="cov2" title="2">if role == models.RoleOwner </span><span class="cov1" title="1">{
+                return ErrCannotRemoveOwner
+        }</span>
+
+        <span class="cov1" title="1">_, err = s.db.Pool.Exec(ctx, `
+                DELETE FROM team_members WHERE team_id = $1 AND user_id = $2
+        `, teamID, userID)
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">package services
+
+import (
+        "context"
+        "time"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/google/uuid"
+)
+
+type TokenService struct {
+        db *database.DB
+}
+
+func NewTokenService(db *database.DB) *TokenService <span class="cov10" title="7">{
+        return &amp;TokenService{db: db}
+}</span>
+
+func (s *TokenService) StoreRefreshToken(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `
+                INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+                VALUES ($1, $2, $3)
+        `, userID, tokenHash, expiresAt)
+        return err
+}</span>
+
+func (s *TokenService) ValidateRefreshToken(ctx context.Context, tokenHash string) (uuid.UUID, error) <span class="cov6" title="3">{
+        var userID uuid.UUID
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT user_id FROM refresh_tokens
+                WHERE token_hash = $1 AND expires_at &gt; NOW()
+        `, tokenHash).Scan(&amp;userID)
+        return userID, err
+}</span>
+
+func (s *TokenService) RevokeRefreshToken(ctx context.Context, tokenHash string) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM refresh_tokens WHERE token_hash = $1`, tokenHash)
+        return err
+}</span>
+
+func (s *TokenService) RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM refresh_tokens WHERE user_id = $1`, userID)
+        return err
+}</span>
+
+func (s *TokenService) CleanupExpired(ctx context.Context) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM refresh_tokens WHERE expires_at &lt; NOW()`)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">package services
+
+import (
+        "context"
+        "fmt"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/dimitrije/nikode-api/internal/oauth"
+        "github.com/google/uuid"
+)
+
+type UserService struct {
+        db *database.DB
+}
+
+func NewUserService(db *database.DB) *UserService <span class="cov10" title="9">{
+        return &amp;UserService{db: db}
+}</span>
+
+func (s *UserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth.UserInfo) (*models.User, error) <span class="cov5" title="3">{
+        var user models.User
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+                FROM users
+                WHERE provider = $1 AND provider_id = $2
+        `, info.Provider, info.ID).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+
+        if err == nil </span><span class="cov3" title="2">{
+                if user.Email != info.Email || user.Name != info.Name || (user.AvatarURL == nil &amp;&amp; info.AvatarURL != "") </span><span class="cov1" title="1">{
+                        _, _ = s.db.Pool.Exec(ctx, `
+                                UPDATE users SET email = $1, name = $2, avatar_url = $3, updated_at = NOW()
+                                WHERE id = $4
+                        `, info.Email, info.Name, nullableString(info.AvatarURL), user.ID)
+                        user.Email = info.Email
+                        user.Name = info.Name
+                        if info.AvatarURL != "" </span><span class="cov1" title="1">{
+                                user.AvatarURL = &amp;info.AvatarURL
+                        }</span>
+                }
+                <span class="cov3" title="2">return &amp;user, nil</span>
+        }
+
+        <span class="cov1" title="1">err = s.db.Pool.QueryRow(ctx, `
+                INSERT INTO users (email, name, avatar_url, provider, provider_id)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+        `, info.Email, info.Name, nullableString(info.AvatarURL), info.Provider, info.ID).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create user: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">return &amp;user, nil</span>
+}
+
+func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) <span class="cov3" title="2">{
+        var user models.User
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+                FROM users WHERE id = $1
+        `, id).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;user, nil</span>
+}
+
+func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.User, error) <span class="cov3" title="2">{
+        var user models.User
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+                FROM users WHERE email = $1
+        `, email).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;user, nil</span>
+}
+
+func (s *UserService) Update(ctx context.Context, id uuid.UUID, name string) (*models.User, error) <span class="cov3" title="2">{
+        var user models.User
+        err := s.db.Pool.QueryRow(ctx, `
+                UPDATE users SET name = $1, updated_at = NOW()
+                WHERE id = $2
+                RETURNING id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+        `, name, id).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;user, nil</span>
+}
+
+func nullableString(s string) *string <span class="cov3" title="2">{
+        if s == "" </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov3" title="2">return &amp;s</span>
+}
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package services
+
+import (
+        "context"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/google/uuid"
+)
+
+type WorkspaceService struct {
+        db          *database.DB
+        teamService *TeamService
+}
+
+func NewWorkspaceService(db *database.DB, teamService *TeamService) *WorkspaceService <span class="cov10" title="14">{
+        return &amp;WorkspaceService{db: db, teamService: teamService}
+}</span>
+
+func (s *WorkspaceService) Create(ctx context.Context, name string, userID uuid.UUID, teamID *uuid.UUID) (*models.Workspace, error) <span class="cov3" title="2">{
+        var workspace models.Workspace
+        var err error
+
+        if teamID != nil </span><span class="cov1" title="1">{
+                err = s.db.Pool.QueryRow(ctx, `
+                        INSERT INTO workspaces (name, team_id)
+                        VALUES ($1, $2)
+                        RETURNING id, name, user_id, team_id, created_at, updated_at
+                `, name, teamID).Scan(&amp;workspace.ID, &amp;workspace.Name, &amp;workspace.UserID, &amp;workspace.TeamID, &amp;workspace.CreatedAt, &amp;workspace.UpdatedAt)
+        }</span> else<span class="cov1" title="1"> {
+                err = s.db.Pool.QueryRow(ctx, `
+                        INSERT INTO workspaces (name, user_id)
+                        VALUES ($1, $2)
+                        RETURNING id, name, user_id, team_id, created_at, updated_at
+                `, name, userID).Scan(&amp;workspace.ID, &amp;workspace.Name, &amp;workspace.UserID, &amp;workspace.TeamID, &amp;workspace.CreatedAt, &amp;workspace.UpdatedAt)
+        }</span>
+
+        <span class="cov3" title="2">if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov3" title="2">return &amp;workspace, nil</span>
+}
+
+func (s *WorkspaceService) GetByID(ctx context.Context, workspaceID uuid.UUID) (*models.Workspace, error) <span class="cov8" title="9">{
+        var workspace models.Workspace
+        err := s.db.Pool.QueryRow(ctx, `
+                SELECT id, name, user_id, team_id, created_at, updated_at
+                FROM workspaces WHERE id = $1
+        `, workspaceID).Scan(&amp;workspace.ID, &amp;workspace.Name, &amp;workspace.UserID, &amp;workspace.TeamID, &amp;workspace.CreatedAt, &amp;workspace.UpdatedAt)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="8">return &amp;workspace, nil</span>
+}
+
+func (s *WorkspaceService) GetUserWorkspaces(ctx context.Context, userID uuid.UUID) ([]models.Workspace, error) <span class="cov1" title="1">{
+        rows, err := s.db.Pool.Query(ctx, `
+                SELECT DISTINCT w.id, w.name, w.user_id, w.team_id, w.created_at, w.updated_at
+                FROM workspaces w
+                LEFT JOIN team_members tm ON w.team_id = tm.team_id
+                WHERE w.user_id = $1 OR tm.user_id = $1
+                ORDER BY w.created_at DESC
+        `, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">defer rows.Close()
+
+        var workspaces []models.Workspace
+        for rows.Next() </span><span class="cov3" title="2">{
+                var w models.Workspace
+                if err := rows.Scan(&amp;w.ID, &amp;w.Name, &amp;w.UserID, &amp;w.TeamID, &amp;w.CreatedAt, &amp;w.UpdatedAt); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov3" title="2">workspaces = append(workspaces, w)</span>
+        }
+        <span class="cov1" title="1">return workspaces, nil</span>
+}
+
+func (s *WorkspaceService) Update(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Workspace, error) <span class="cov1" title="1">{
+        var workspace models.Workspace
+        err := s.db.Pool.QueryRow(ctx, `
+                UPDATE workspaces SET name = $1, updated_at = NOW()
+                WHERE id = $2
+                RETURNING id, name, user_id, team_id, created_at, updated_at
+        `, name, workspaceID).Scan(&amp;workspace.ID, &amp;workspace.Name, &amp;workspace.UserID, &amp;workspace.TeamID, &amp;workspace.CreatedAt, &amp;workspace.UpdatedAt)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;workspace, nil</span>
+}
+
+func (s *WorkspaceService) Delete(ctx context.Context, workspaceID uuid.UUID) error <span class="cov1" title="1">{
+        _, err := s.db.Pool.Exec(ctx, `DELETE FROM workspaces WHERE id = $1`, workspaceID)
+        return err
+}</span>
+
+func (s *WorkspaceService) CanAccess(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error) <span class="cov5" title="4">{
+        workspace, err := s.GetByID(ctx, workspaceID)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov5" title="4">if workspace.UserID != nil &amp;&amp; *workspace.UserID == userID </span><span class="cov1" title="1">{
+                return true, nil
+        }</span>
+
+        <span class="cov4" title="3">if workspace.TeamID != nil </span><span class="cov3" title="2">{
+                return s.teamService.IsMember(ctx, *workspace.TeamID, userID)
+        }</span>
+
+        <span class="cov1" title="1">return false, nil</span>
+}
+
+func (s *WorkspaceService) CanModify(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error) <span class="cov4" title="3">{
+        workspace, err := s.GetByID(ctx, workspaceID)
+        if err != nil </span><span class="cov0" title="0">{
+                return false, err
+        }</span>
+
+        <span class="cov4" title="3">if workspace.UserID != nil &amp;&amp; *workspace.UserID == userID </span><span class="cov1" title="1">{
+                return true, nil
+        }</span>
+
+        <span class="cov3" title="2">if workspace.TeamID != nil </span><span class="cov3" title="2">{
+                return s.teamService.IsOwner(ctx, *workspace.TeamID, userID)
+        }</span>
+
+        <span class="cov0" title="0">return false, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file22" style="display: none">package sse
+
+import (
+        "encoding/json"
+        "sync"
+
+        "github.com/google/uuid"
+)
+
+type Event struct {
+        Type string      `json:"type"`
+        Data interface{} `json:"data"`
+}
+
+type CollectionUpdatedEvent struct {
+        CollectionID uuid.UUID `json:"collection_id"`
+        WorkspaceID  uuid.UUID `json:"workspace_id"`
+        Version      int       `json:"version"`
+        UpdatedBy    uuid.UUID `json:"updated_by"`
+}
+
+type Client struct {
+        ID         string
+        UserID     uuid.UUID
+        Workspaces map[uuid.UUID]bool
+        Send       chan []byte
+}
+
+type Hub struct {
+        clients    map[string]*Client
+        register   chan *Client
+        unregister chan *Client
+        broadcast  chan *WorkspaceMessage
+        mu         sync.RWMutex
+}
+
+type WorkspaceMessage struct {
+        WorkspaceID uuid.UUID
+        Event       Event
+}
+
+func NewHub() *Hub <span class="cov7" title="14">{
+        return &amp;Hub{
+                clients:    make(map[string]*Client),
+                register:   make(chan *Client),
+                unregister: make(chan *Client),
+                broadcast:  make(chan *WorkspaceMessage, 256),
+        }
+}</span>
+
+func (h *Hub) Run() <span class="cov7" title="13">{
+        for </span><span class="cov10" title="32">{
+                select </span>{
+                case client := &lt;-h.register:<span class="cov7" title="12">
+                        h.mu.Lock()
+                        h.clients[client.ID] = client
+                        h.mu.Unlock()</span>
+
+                case client := &lt;-h.unregister:<span class="cov3" title="3">
+                        h.mu.Lock()
+                        if _, ok := h.clients[client.ID]; ok </span><span class="cov2" title="2">{
+                                delete(h.clients, client.ID)
+                                close(client.Send)
+                        }</span>
+                        <span class="cov3" title="3">h.mu.Unlock()</span>
+
+                case msg := &lt;-h.broadcast:<span class="cov4" title="4">
+                        h.mu.RLock()
+                        data, _ := json.Marshal(msg.Event)
+                        for _, client := range h.clients </span><span class="cov5" title="6">{
+                                if client.Workspaces[msg.WorkspaceID] </span><span class="cov4" title="4">{
+                                        select </span>{
+                                        case client.Send &lt;- data:<span class="cov3" title="3"></span>
+                                        default:<span class="cov1" title="1"></span>
+                                                // Client buffer full, skip
+                                        }
+                                }
+                        }
+                        <span class="cov4" title="4">h.mu.RUnlock()</span>
+                }
+        }
+}
+
+func (h *Hub) Register(client *Client) <span class="cov7" title="12">{
+        h.register &lt;- client
+}</span>
+
+func (h *Hub) Unregister(client *Client) <span class="cov3" title="3">{
+        h.unregister &lt;- client
+}</span>
+
+func (h *Hub) SubscribeToWorkspace(clientID string, workspaceID uuid.UUID) <span class="cov4" title="4">{
+        h.mu.Lock()
+        defer h.mu.Unlock()
+        if client, ok := h.clients[clientID]; ok </span><span class="cov3" title="3">{
+                client.Workspaces[workspaceID] = true
+        }</span>
+}
+
+func (h *Hub) UnsubscribeFromWorkspace(clientID string, workspaceID uuid.UUID) <span class="cov2" title="2">{
+        h.mu.Lock()
+        defer h.mu.Unlock()
+        if client, ok := h.clients[clientID]; ok </span><span class="cov1" title="1">{
+                delete(client.Workspaces, workspaceID)
+        }</span>
+}
+
+func (h *Hub) BroadcastCollectionUpdate(workspaceID, collectionID, updatedBy uuid.UUID, version int) <span class="cov4" title="4">{
+        h.broadcast &lt;- &amp;WorkspaceMessage{
+                WorkspaceID: workspaceID,
+                Event: Event{
+                        Type: "collection_updated",
+                        Data: CollectionUpdatedEvent{
+                                CollectionID: collectionID,
+                                WorkspaceID:  workspaceID,
+                                Version:      version,
+                                UpdatedBy:    updatedBy,
+                        },
+                },
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file23" style="display: none">package testutil
+
+import (
+        "context"
+        "fmt"
+        "testing"
+        "time"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/jackc/pgx/v5/pgxpool"
+        "github.com/testcontainers/testcontainers-go"
+        "github.com/testcontainers/testcontainers-go/wait"
+)
+
+// TestDB wraps a test database connection with cleanup helpers
+type TestDB struct {
+        DB        *database.DB
+        Container testcontainers.Container
+}
+
+// SetupTestDB creates a PostgreSQL testcontainer and returns a connected TestDB
+func SetupTestDB(t *testing.T) *TestDB <span class="cov0" title="0">{
+        t.Helper()
+        ctx := context.Background()
+
+        req := testcontainers.ContainerRequest{
+                Image:        "postgres:16-alpine",
+                ExposedPorts: []string{"5432/tcp"},
+                Env: map[string]string{
+                        "POSTGRES_USER":     "test",
+                        "POSTGRES_PASSWORD": "test",
+                        "POSTGRES_DB":       "nikode_test",
+                },
+                WaitingFor: wait.ForLog("database system is ready to accept connections").
+                        WithOccurrence(2).
+                        WithStartupTimeout(60 * time.Second),
+        }
+
+        container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+                ContainerRequest: req,
+                Started:          true,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to start postgres container: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">host, err := container.Host(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to get container host: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">port, err := container.MappedPort(ctx, "5432")
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to get container port: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">dsn := fmt.Sprintf("postgres://test:test@%s:%s/nikode_test?sslmode=disable", host, port.Port())
+
+        pool, err := pgxpool.New(ctx, dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to connect to test database: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">db := &amp;database.DB{Pool: pool}
+
+        if err := db.Migrate(ctx); err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to run migrations: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">t.Cleanup(func() </span><span class="cov0" title="0">{
+                pool.Close()
+                if err := container.Terminate(ctx); err != nil </span><span class="cov0" title="0">{
+                        t.Logf("failed to terminate container: %v", err)
+                }</span>
+        })
+
+        <span class="cov0" title="0">return &amp;TestDB{
+                DB:        db,
+                Container: container,
+        }</span>
+}
+
+// CleanTables truncates all tables to reset state between tests
+func (tdb *TestDB) CleanTables(t *testing.T) <span class="cov0" title="0">{
+        t.Helper()
+        ctx := context.Background()
+
+        tables := []string{
+                "refresh_tokens",
+                "collections",
+                "workspaces",
+                "team_members",
+                "teams",
+                "users",
+        }
+
+        for _, table := range tables </span><span class="cov0" title="0">{
+                _, err := tdb.DB.Pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table))
+                if err != nil </span><span class="cov0" title="0">{
+                        t.Fatalf("failed to truncate table %s: %v", table, err)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file24" style="display: none">package testutil
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "testing"
+        "time"
+
+        "github.com/dimitrije/nikode-api/internal/database"
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/dimitrije/nikode-api/internal/oauth"
+        "github.com/google/uuid"
+)
+
+// Fixtures provides factory methods for creating test data
+type Fixtures struct {
+        db      *database.DB
+        counter int
+}
+
+// NewFixtures creates a new fixtures factory
+func NewFixtures(db *database.DB) *Fixtures <span class="cov0" title="0">{
+        return &amp;Fixtures{db: db}
+}</span>
+
+// CreateUser creates a test user with default values
+func (f *Fixtures) CreateUser(t *testing.T, opts ...UserOption) *models.User <span class="cov0" title="0">{
+        t.Helper()
+        f.counter++
+
+        user := &amp;models.User{
+                Email:      fmt.Sprintf("user%d@example.com", f.counter),
+                Name:       fmt.Sprintf("Test User %d", f.counter),
+                Provider:   "github",
+                ProviderID: fmt.Sprintf("provider-%d", f.counter),
+        }
+
+        for _, opt := range opts </span><span class="cov0" title="0">{
+                opt(user)
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+        err := f.db.Pool.QueryRow(ctx, `
+                INSERT INTO users (email, name, avatar_url, provider, provider_id)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+        `, user.Email, user.Name, user.AvatarURL, user.Provider, user.ProviderID).Scan(
+                &amp;user.ID, &amp;user.Email, &amp;user.Name, &amp;user.AvatarURL,
+                &amp;user.Provider, &amp;user.ProviderID, &amp;user.CreatedAt, &amp;user.UpdatedAt,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to create user: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return user</span>
+}
+
+// UserOption configures a test user
+type UserOption func(*models.User)
+
+// WithEmail sets the user's email
+func WithEmail(email string) UserOption <span class="cov0" title="0">{
+        return func(u *models.User) </span><span class="cov0" title="0">{
+                u.Email = email
+        }</span>
+}
+
+// WithName sets the user's name
+func WithName(name string) UserOption <span class="cov0" title="0">{
+        return func(u *models.User) </span><span class="cov0" title="0">{
+                u.Name = name
+        }</span>
+}
+
+// WithProvider sets the user's OAuth provider
+func WithProvider(provider, providerID string) UserOption <span class="cov0" title="0">{
+        return func(u *models.User) </span><span class="cov0" title="0">{
+                u.Provider = provider
+                u.ProviderID = providerID
+        }</span>
+}
+
+// WithAvatar sets the user's avatar URL
+func WithAvatar(url string) UserOption <span class="cov0" title="0">{
+        return func(u *models.User) </span><span class="cov0" title="0">{
+                u.AvatarURL = &amp;url
+        }</span>
+}
+
+// CreateTeam creates a test team with the given owner
+func (f *Fixtures) CreateTeam(t *testing.T, owner *models.User, opts ...TeamOption) *models.Team <span class="cov0" title="0">{
+        t.Helper()
+        f.counter++
+
+        team := &amp;models.Team{
+                Name:    fmt.Sprintf("Test Team %d", f.counter),
+                OwnerID: owner.ID,
+        }
+
+        for _, opt := range opts </span><span class="cov0" title="0">{
+                opt(team)
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+        tx, err := f.db.Pool.Begin(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to begin transaction: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer tx.Rollback(ctx)
+
+        err = tx.QueryRow(ctx, `
+                INSERT INTO teams (name, owner_id)
+                VALUES ($1, $2)
+                RETURNING id, name, owner_id, created_at, updated_at
+        `, team.Name, team.OwnerID).Scan(&amp;team.ID, &amp;team.Name, &amp;team.OwnerID, &amp;team.CreatedAt, &amp;team.UpdatedAt)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to create team: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">_, err = tx.Exec(ctx, `
+                INSERT INTO team_members (team_id, user_id, role)
+                VALUES ($1, $2, $3)
+        `, team.ID, owner.ID, models.RoleOwner)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to add owner as member: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">if err := tx.Commit(ctx); err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to commit transaction: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return team</span>
+}
+
+// TeamOption configures a test team
+type TeamOption func(*models.Team)
+
+// WithTeamName sets the team's name
+func WithTeamName(name string) TeamOption <span class="cov0" title="0">{
+        return func(t *models.Team) </span><span class="cov0" title="0">{
+                t.Name = name
+        }</span>
+}
+
+// AddTeamMember adds a member to a team
+func (f *Fixtures) AddTeamMember(t *testing.T, team *models.Team, user *models.User) <span class="cov0" title="0">{
+        t.Helper()
+        ctx := context.Background()
+
+        _, err := f.db.Pool.Exec(ctx, `
+                INSERT INTO team_members (team_id, user_id, role)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (team_id, user_id) DO NOTHING
+        `, team.ID, user.ID, models.RoleMember)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to add team member: %v", err)
+        }</span>
+}
+
+// CreateWorkspace creates a test workspace (personal or team)
+func (f *Fixtures) CreateWorkspace(t *testing.T, opts ...WorkspaceOption) *models.Workspace <span class="cov0" title="0">{
+        t.Helper()
+        f.counter++
+
+        ws := &amp;models.Workspace{
+                Name: fmt.Sprintf("Test Workspace %d", f.counter),
+        }
+
+        for _, opt := range opts </span><span class="cov0" title="0">{
+                opt(ws)
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+        var err error
+
+        if ws.TeamID != nil </span><span class="cov0" title="0">{
+                err = f.db.Pool.QueryRow(ctx, `
+                        INSERT INTO workspaces (name, team_id)
+                        VALUES ($1, $2)
+                        RETURNING id, name, user_id, team_id, created_at, updated_at
+                `, ws.Name, ws.TeamID).Scan(&amp;ws.ID, &amp;ws.Name, &amp;ws.UserID, &amp;ws.TeamID, &amp;ws.CreatedAt, &amp;ws.UpdatedAt)
+        }</span> else<span class="cov0" title="0"> if ws.UserID != nil </span><span class="cov0" title="0">{
+                err = f.db.Pool.QueryRow(ctx, `
+                        INSERT INTO workspaces (name, user_id)
+                        VALUES ($1, $2)
+                        RETURNING id, name, user_id, team_id, created_at, updated_at
+                `, ws.Name, ws.UserID).Scan(&amp;ws.ID, &amp;ws.Name, &amp;ws.UserID, &amp;ws.TeamID, &amp;ws.CreatedAt, &amp;ws.UpdatedAt)
+        }</span> else<span class="cov0" title="0"> {
+                t.Fatal("workspace must have either user_id or team_id")
+        }</span>
+
+        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to create workspace: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return ws</span>
+}
+
+// WorkspaceOption configures a test workspace
+type WorkspaceOption func(*models.Workspace)
+
+// WithWorkspaceName sets the workspace name
+func WithWorkspaceName(name string) WorkspaceOption <span class="cov0" title="0">{
+        return func(w *models.Workspace) </span><span class="cov0" title="0">{
+                w.Name = name
+        }</span>
+}
+
+// WithUser sets the workspace as personal for the given user
+func WithUser(user *models.User) WorkspaceOption <span class="cov0" title="0">{
+        return func(w *models.Workspace) </span><span class="cov0" title="0">{
+                w.UserID = &amp;user.ID
+                w.TeamID = nil
+        }</span>
+}
+
+// WithTeam sets the workspace as belonging to the given team
+func WithTeam(team *models.Team) WorkspaceOption <span class="cov0" title="0">{
+        return func(w *models.Workspace) </span><span class="cov0" title="0">{
+                w.TeamID = &amp;team.ID
+                w.UserID = nil
+        }</span>
+}
+
+// CreateCollection creates a test collection in a workspace
+func (f *Fixtures) CreateCollection(t *testing.T, workspace *models.Workspace, user *models.User, opts ...CollectionOption) *models.Collection <span class="cov0" title="0">{
+        t.Helper()
+        f.counter++
+
+        col := &amp;models.Collection{
+                WorkspaceID: workspace.ID,
+                Name:        fmt.Sprintf("Test Collection %d", f.counter),
+                Data:        json.RawMessage(`{}`),
+                UpdatedBy:   &amp;user.ID,
+        }
+
+        for _, opt := range opts </span><span class="cov0" title="0">{
+                opt(col)
+        }</span>
+
+        <span class="cov0" title="0">ctx := context.Background()
+        err := f.db.Pool.QueryRow(ctx, `
+                INSERT INTO collections (workspace_id, name, data, updated_by)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+        `, col.WorkspaceID, col.Name, col.Data, col.UpdatedBy).Scan(
+                &amp;col.ID, &amp;col.WorkspaceID, &amp;col.Name,
+                &amp;col.Data, &amp;col.Version, &amp;col.UpdatedBy,
+                &amp;col.CreatedAt, &amp;col.UpdatedAt,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to create collection: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">return col</span>
+}
+
+// CollectionOption configures a test collection
+type CollectionOption func(*models.Collection)
+
+// WithCollectionName sets the collection name
+func WithCollectionName(name string) CollectionOption <span class="cov0" title="0">{
+        return func(c *models.Collection) </span><span class="cov0" title="0">{
+                c.Name = name
+        }</span>
+}
+
+// WithCollectionData sets the collection data
+func WithCollectionData(data json.RawMessage) CollectionOption <span class="cov0" title="0">{
+        return func(c *models.Collection) </span><span class="cov0" title="0">{
+                c.Data = data
+        }</span>
+}
+
+// CreateRefreshToken creates a test refresh token
+func (f *Fixtures) CreateRefreshToken(t *testing.T, userID uuid.UUID, tokenHash string, expiresAt time.Time) <span class="cov0" title="0">{
+        t.Helper()
+        ctx := context.Background()
+
+        _, err := f.db.Pool.Exec(ctx, `
+                INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+                VALUES ($1, $2, $3)
+        `, userID, tokenHash, expiresAt)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to create refresh token: %v", err)
+        }</span>
+}
+
+// OAuthUserInfo creates test OAuth user info
+func OAuthUserInfo(email, name, provider, id string) *oauth.UserInfo <span class="cov0" title="0">{
+        return &amp;oauth.UserInfo{
+                Email:     email,
+                Name:      name,
+                AvatarURL: "https://example.com/avatar.png",
+                ID:        id,
+                Provider:  provider,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file25" style="display: none">package testutil
+
+import (
+        "bytes"
+        "encoding/json"
+        "io"
+        "net/http"
+        "net/http/httptest"
+        "testing"
+        "time"
+
+        "github.com/dimitrije/nikode-api/internal/services"
+        "github.com/google/uuid"
+)
+
+// TestJWTService creates a JWTService with test configuration
+func TestJWTService() *services.JWTService <span class="cov0" title="0">{
+        return services.NewJWTService(
+                "test-secret-key-for-testing-only",
+                15*time.Minute,
+                24*time.Hour,
+        )
+}</span>
+
+// GenerateTestToken generates a valid JWT token for testing
+func GenerateTestToken(t *testing.T, userID uuid.UUID, email string) string <span class="cov0" title="0">{
+        t.Helper()
+        jwtSvc := TestJWTService()
+        pair, err := jwtSvc.GenerateTokenPair(userID, email)
+        if err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to generate test token: %v", err)
+        }</span>
+        <span class="cov0" title="0">return pair.AccessToken</span>
+}
+
+// AuthHeader returns an Authorization header value with a Bearer token
+func AuthHeader(token string) string <span class="cov0" title="0">{
+        return "Bearer " + token
+}</span>
+
+// HTTPTestClient provides helper methods for HTTP testing
+type HTTPTestClient struct {
+        t       *testing.T
+        handler http.Handler
+}
+
+// NewHTTPTestClient creates a new HTTP test client
+func NewHTTPTestClient(t *testing.T, handler http.Handler) *HTTPTestClient <span class="cov0" title="0">{
+        return &amp;HTTPTestClient{t: t, handler: handler}
+}</span>
+
+// Request makes an HTTP request and returns the response
+func (c *HTTPTestClient) Request(method, path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder <span class="cov0" title="0">{
+        c.t.Helper()
+
+        var bodyReader io.Reader
+        if body != nil </span><span class="cov0" title="0">{
+                jsonBody, err := json.Marshal(body)
+                if err != nil </span><span class="cov0" title="0">{
+                        c.t.Fatalf("failed to marshal request body: %v", err)
+                }</span>
+                <span class="cov0" title="0">bodyReader = bytes.NewReader(jsonBody)</span>
+        }
+
+        <span class="cov0" title="0">req := httptest.NewRequest(method, path, bodyReader)
+        if body != nil </span><span class="cov0" title="0">{
+                req.Header.Set("Content-Type", "application/json")
+        }</span>
+
+        <span class="cov0" title="0">for k, v := range headers </span><span class="cov0" title="0">{
+                req.Header.Set(k, v)
+        }</span>
+
+        <span class="cov0" title="0">rec := httptest.NewRecorder()
+        c.handler.ServeHTTP(rec, req)
+        return rec</span>
+}
+
+// GET makes a GET request
+func (c *HTTPTestClient) GET(path string, headers map[string]string) *httptest.ResponseRecorder <span class="cov0" title="0">{
+        return c.Request(http.MethodGet, path, nil, headers)
+}</span>
+
+// POST makes a POST request
+func (c *HTTPTestClient) POST(path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder <span class="cov0" title="0">{
+        return c.Request(http.MethodPost, path, body, headers)
+}</span>
+
+// PATCH makes a PATCH request
+func (c *HTTPTestClient) PATCH(path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder <span class="cov0" title="0">{
+        return c.Request(http.MethodPatch, path, body, headers)
+}</span>
+
+// DELETE makes a DELETE request
+func (c *HTTPTestClient) DELETE(path string, headers map[string]string) *httptest.ResponseRecorder <span class="cov0" title="0">{
+        return c.Request(http.MethodDelete, path, nil, headers)
+}</span>
+
+// ParseJSON parses the response body as JSON
+func ParseJSON(t *testing.T, rec *httptest.ResponseRecorder, v interface{}) <span class="cov0" title="0">{
+        t.Helper()
+        if err := json.NewDecoder(rec.Body).Decode(v); err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to parse response JSON: %v", err)
+        }</span>
+}
+
+// AssertStatus asserts the response status code
+func AssertStatus(t *testing.T, rec *httptest.ResponseRecorder, expected int) <span class="cov0" title="0">{
+        t.Helper()
+        if rec.Code != expected </span><span class="cov0" title="0">{
+                t.Errorf("expected status %d, got %d. Body: %s", expected, rec.Code, rec.Body.String())
+        }</span>
+}
+
+// AssertJSON asserts that the response contains expected JSON fields
+func AssertJSON(t *testing.T, rec *httptest.ResponseRecorder, expected map[string]interface{}) <span class="cov0" title="0">{
+        t.Helper()
+        var actual map[string]interface{}
+        if err := json.NewDecoder(rec.Body).Decode(&amp;actual); err != nil </span><span class="cov0" title="0">{
+                t.Fatalf("failed to parse response JSON: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">for key, expectedVal := range expected </span><span class="cov0" title="0">{
+                actualVal, ok := actual[key]
+                if !ok </span><span class="cov0" title="0">{
+                        t.Errorf("expected key %q not found in response", key)
+                        continue</span>
+                }
+                <span class="cov0" title="0">if expectedVal != actualVal </span><span class="cov0" title="0">{
+                        t.Errorf("expected %q=%v, got %v", key, expectedVal, actualVal)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file26" style="display: none">package testutil
+
+import (
+        "context"
+        "encoding/json"
+
+        "github.com/dimitrije/nikode-api/internal/models"
+        "github.com/dimitrije/nikode-api/internal/oauth"
+        "github.com/google/uuid"
+        "github.com/stretchr/testify/mock"
+)
+
+// MockUserService mocks the UserService
+type MockUserService struct {
+        mock.Mock
+}
+
+func (m *MockUserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth.UserInfo) (*models.User, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, info)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.User), args.Error(1)</span>
+}
+
+func (m *MockUserService) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, id)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.User), args.Error(1)</span>
+}
+
+func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models.User, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, email)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.User), args.Error(1)</span>
+}
+
+func (m *MockUserService) Update(ctx context.Context, id uuid.UUID, name string) (*models.User, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, id, name)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.User), args.Error(1)</span>
+}
+
+// MockTeamService mocks the TeamService
+type MockTeamService struct {
+        mock.Mock
+}
+
+func (m *MockTeamService) Create(ctx context.Context, name string, ownerID uuid.UUID) (*models.Team, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, name, ownerID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Team), args.Error(1)</span>
+}
+
+func (m *MockTeamService) GetByID(ctx context.Context, teamID uuid.UUID) (*models.Team, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Team), args.Error(1)</span>
+}
+
+func (m *MockTeamService) GetUserTeams(ctx context.Context, userID uuid.UUID) ([]models.Team, []string, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, userID)
+        return args.Get(0).([]models.Team), args.Get(1).([]string), args.Error(2)
+}</span>
+
+func (m *MockTeamService) Update(ctx context.Context, teamID uuid.UUID, name string) (*models.Team, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID, name)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Team), args.Error(1)</span>
+}
+
+func (m *MockTeamService) Delete(ctx context.Context, teamID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID)
+        return args.Error(0)
+}</span>
+
+func (m *MockTeamService) IsOwner(ctx context.Context, teamID, userID uuid.UUID) (bool, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID, userID)
+        return args.Bool(0), args.Error(1)
+}</span>
+
+func (m *MockTeamService) IsMember(ctx context.Context, teamID, userID uuid.UUID) (bool, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID, userID)
+        return args.Bool(0), args.Error(1)
+}</span>
+
+func (m *MockTeamService) GetMembers(ctx context.Context, teamID uuid.UUID) ([]models.TeamMember, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID)
+        return args.Get(0).([]models.TeamMember), args.Error(1)
+}</span>
+
+func (m *MockTeamService) AddMember(ctx context.Context, teamID, userID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID, userID)
+        return args.Error(0)
+}</span>
+
+func (m *MockTeamService) RemoveMember(ctx context.Context, teamID, userID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, teamID, userID)
+        return args.Error(0)
+}</span>
+
+// MockWorkspaceService mocks the WorkspaceService
+type MockWorkspaceService struct {
+        mock.Mock
+}
+
+func (m *MockWorkspaceService) Create(ctx context.Context, name string, userID uuid.UUID, teamID *uuid.UUID) (*models.Workspace, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, name, userID, teamID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Workspace), args.Error(1)</span>
+}
+
+func (m *MockWorkspaceService) GetByID(ctx context.Context, workspaceID uuid.UUID) (*models.Workspace, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Workspace), args.Error(1)</span>
+}
+
+func (m *MockWorkspaceService) GetUserWorkspaces(ctx context.Context, userID uuid.UUID) ([]models.Workspace, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, userID)
+        return args.Get(0).([]models.Workspace), args.Error(1)
+}</span>
+
+func (m *MockWorkspaceService) Update(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Workspace, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID, name)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Workspace), args.Error(1)</span>
+}
+
+func (m *MockWorkspaceService) Delete(ctx context.Context, workspaceID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID)
+        return args.Error(0)
+}</span>
+
+func (m *MockWorkspaceService) CanAccess(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID, userID)
+        return args.Bool(0), args.Error(1)
+}</span>
+
+func (m *MockWorkspaceService) CanModify(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID, userID)
+        return args.Bool(0), args.Error(1)
+}</span>
+
+// MockCollectionService mocks the CollectionService
+type MockCollectionService struct {
+        mock.Mock
+}
+
+func (m *MockCollectionService) Create(ctx context.Context, workspaceID uuid.UUID, name string, data json.RawMessage, userID uuid.UUID) (*models.Collection, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID, name, data, userID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Collection), args.Error(1)</span>
+}
+
+func (m *MockCollectionService) GetByID(ctx context.Context, collectionID uuid.UUID) (*models.Collection, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, collectionID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Collection), args.Error(1)</span>
+}
+
+func (m *MockCollectionService) GetByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]models.Collection, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, workspaceID)
+        return args.Get(0).([]models.Collection), args.Error(1)
+}</span>
+
+func (m *MockCollectionService) Update(ctx context.Context, collectionID uuid.UUID, name *string, data json.RawMessage, expectedVersion int, userID uuid.UUID) (*models.Collection, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, collectionID, name, data, expectedVersion, userID)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*models.Collection), args.Error(1)</span>
+}
+
+func (m *MockCollectionService) Delete(ctx context.Context, collectionID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, collectionID)
+        return args.Error(0)
+}</span>
+
+// MockTokenService mocks the TokenService
+type MockTokenService struct {
+        mock.Mock
+}
+
+func (m *MockTokenService) StoreRefreshToken(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt interface{}) error <span class="cov0" title="0">{
+        args := m.Called(ctx, userID, tokenHash, expiresAt)
+        return args.Error(0)
+}</span>
+
+func (m *MockTokenService) ValidateRefreshToken(ctx context.Context, tokenHash string) (uuid.UUID, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, tokenHash)
+        return args.Get(0).(uuid.UUID), args.Error(1)
+}</span>
+
+func (m *MockTokenService) RevokeRefreshToken(ctx context.Context, tokenHash string) error <span class="cov0" title="0">{
+        args := m.Called(ctx, tokenHash)
+        return args.Error(0)
+}</span>
+
+func (m *MockTokenService) RevokeAllUserTokens(ctx context.Context, userID uuid.UUID) error <span class="cov0" title="0">{
+        args := m.Called(ctx, userID)
+        return args.Error(0)
+}</span>
+
+func (m *MockTokenService) CleanupExpired(ctx context.Context) error <span class="cov0" title="0">{
+        args := m.Called(ctx)
+        return args.Error(0)
+}</span>
+
+// MockOAuthProvider mocks an OAuth provider
+type MockOAuthProvider struct {
+        mock.Mock
+}
+
+func (m *MockOAuthProvider) GetConsentURL(state string) string <span class="cov0" title="0">{
+        args := m.Called(state)
+        return args.String(0)
+}</span>
+
+func (m *MockOAuthProvider) ExchangeCode(ctx context.Context, code string) (*oauth.UserInfo, error) <span class="cov0" title="0">{
+        args := m.Called(ctx, code)
+        if args.Get(0) == nil </span><span class="cov0" title="0">{
+                return nil, args.Error(1)
+        }</span>
+        <span class="cov0" title="0">return args.Get(0).(*oauth.UserInfo), args.Error(1)</span>
+}
+
+func (m *MockOAuthProvider) Name() string <span class="cov0" title="0">{
+        args := m.Called()
+        return args.String(0)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
