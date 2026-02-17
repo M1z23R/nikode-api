@@ -4,11 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// Pool defines the interface for database operations.
+// This interface is implemented by both *pgxpool.Pool and pgxmock for testing.
+type Pool interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Close()
+}
+
 type DB struct {
-	Pool *pgxpool.Pool
+	Pool Pool
 }
 
 func New(ctx context.Context, databaseURL string) (*DB, error) {

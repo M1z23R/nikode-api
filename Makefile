@@ -1,4 +1,4 @@
-.PHONY: build run test clean dev install deploy tidy lint migrate setup
+.PHONY: build run test test-unit test-integration test-coverage clean dev install deploy tidy lint migrate setup
 
 # Build configuration
 BINARY_NAME=nikode-api
@@ -19,8 +19,18 @@ run: build
 dev:
 	go run $(CMD_PATH)
 
-test:
-	go test -v ./...
+test: test-unit test-integration
+
+test-unit:
+	go test -v -race -short ./internal/...
+
+test-integration:
+	go test -v -race ./tests/integration/...
+
+test-coverage:
+	go test -v -race -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated at coverage.html"
 
 clean:
 	rm -rf $(BUILD_DIR)
