@@ -27,3 +27,13 @@ type TeamMemberResponse struct {
 	Role   string       `json:"role"`
 	User   UserResponse `json:"user"`
 }
+
+type TeamInviteResponse struct {
+	ID        uuid.UUID     `json:"id"`
+	TeamID    uuid.UUID     `json:"team_id"`
+	Status    string        `json:"status"`
+	CreatedAt string        `json:"created_at"`
+	Team      *TeamResponse `json:"team,omitempty"`
+	Inviter   *UserResponse `json:"inviter,omitempty"`
+	Invitee   *UserResponse `json:"invitee,omitempty"`
+}

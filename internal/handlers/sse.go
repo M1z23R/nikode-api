@@ -4,19 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/middleware"
-	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/internal/sse"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type SSEHandler struct {
 	hub              *sse.Hub
-	workspaceService *services.WorkspaceService
+	workspaceService WorkspaceServiceInterface
 }
 
-func NewSSEHandler(hub *sse.Hub, workspaceService *services.WorkspaceService) *SSEHandler {
+func NewSSEHandler(hub *sse.Hub, workspaceService WorkspaceServiceInterface) *SSEHandler {
 	return &SSEHandler{
 		hub:              hub,
 		workspaceService: workspaceService,

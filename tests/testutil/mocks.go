@@ -3,9 +3,12 @@ package testutil
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/dimitrije/nikode-api/internal/oauth"
+	"github.com/dimitrije/nikode-api/internal/services"
+	"github.com/dimitrije/nikode-api/internal/sse"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
@@ -115,6 +118,47 @@ func (m *MockTeamService) RemoveMember(ctx context.Context, teamID, userID uuid.
 	return args.Error(0)
 }
 
+func (m *MockTeamService) CreateInvite(ctx context.Context, teamID, inviterID, inviteeID uuid.UUID) (*models.TeamInvite, error) {
+	args := m.Called(ctx, teamID, inviterID, inviteeID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TeamInvite), args.Error(1)
+}
+
+func (m *MockTeamService) GetInviteByID(ctx context.Context, inviteID uuid.UUID) (*models.TeamInvite, error) {
+	args := m.Called(ctx, inviteID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TeamInvite), args.Error(1)
+}
+
+func (m *MockTeamService) GetUserPendingInvites(ctx context.Context, userID uuid.UUID) ([]models.TeamInvite, error) {
+	args := m.Called(ctx, userID)
+	return args.Get(0).([]models.TeamInvite), args.Error(1)
+}
+
+func (m *MockTeamService) GetTeamPendingInvites(ctx context.Context, teamID uuid.UUID) ([]models.TeamInvite, error) {
+	args := m.Called(ctx, teamID)
+	return args.Get(0).([]models.TeamInvite), args.Error(1)
+}
+
+func (m *MockTeamService) AcceptInvite(ctx context.Context, inviteID, userID uuid.UUID) error {
+	args := m.Called(ctx, inviteID, userID)
+	return args.Error(0)
+}
+
+func (m *MockTeamService) DeclineInvite(ctx context.Context, inviteID, userID uuid.UUID) error {
+	args := m.Called(ctx, inviteID, userID)
+	return args.Error(0)
+}
+
+func (m *MockTeamService) CancelInvite(ctx context.Context, inviteID, teamID uuid.UUID) error {
+	args := m.Called(ctx, inviteID, teamID)
+	return args.Error(0)
+}
+
 // MockWorkspaceService mocks the WorkspaceService
 type MockWorkspaceService struct {
 	mock.Mock
@@ -208,7 +252,7 @@ type MockTokenService struct {
 	mock.Mock
 }
 
-func (m *MockTokenService) StoreRefreshToken(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt interface{}) error {
+func (m *MockTokenService) StoreRefreshToken(ctx context.Context, userID uuid.UUID, tokenHash string, expiresAt time.Time) error {
 	args := m.Called(ctx, userID, tokenHash, expiresAt)
 	return args.Error(0)
 }
@@ -254,4 +298,62 @@ func (m *MockOAuthProvider) ExchangeCode(ctx context.Context, code string) (*oau
 func (m *MockOAuthProvider) Name() string {
 	args := m.Called()
 	return args.String(0)
+}
+
+// MockJWTService mocks the JWTService
+type MockJWTService struct {
+	mock.Mock
+}
+
+func (m *MockJWTService) GenerateTokenPair(userID uuid.UUID, email string) (*services.TokenPair, error) {
+	args := m.Called(userID, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*services.TokenPair), args.Error(1)
+}
+
+func (m *MockJWTService) ValidateRefreshToken(token string) (uuid.UUID, error) {
+	args := m.Called(token)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+func (m *MockJWTService) RefreshExpiry() time.Duration {
+	args := m.Called()
+	return args.Get(0).(time.Duration)
+}
+
+// MockSSEHub mocks the SSE Hub
+type MockSSEHub struct {
+	mock.Mock
+}
+
+func (m *MockSSEHub) Register(client *sse.Client) {
+	m.Called(client)
+}
+
+func (m *MockSSEHub) Unregister(client *sse.Client) {
+	m.Called(client)
+}
+
+func (m *MockSSEHub) SubscribeToWorkspace(clientID string, workspaceID uuid.UUID) {
+	m.Called(clientID, workspaceID)
+}
+
+func (m *MockSSEHub) UnsubscribeFromWorkspace(clientID string, workspaceID uuid.UUID) {
+	m.Called(clientID, workspaceID)
+}
+
+func (m *MockSSEHub) BroadcastCollectionUpdate(workspaceID, collectionID, userID uuid.UUID, version int) {
+	m.Called(workspaceID, collectionID, userID, version)
+}
+
+// MockEmailService mocks the EmailService
+type MockEmailService struct {
+	mock.Mock
+}
+
+func (m *MockEmailService) SendTeamInvite(to, teamName, inviterName, inviteURL string) error {
+	args := m.Called(to, teamName, inviterName, inviteURL)
+	return args.Error(0)
 }

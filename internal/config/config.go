@@ -17,10 +17,21 @@ type Config struct {
 	JWTRefreshExpiry time.Duration
 
 	FrontendCallbackURL string
+	BaseURL             string
 
 	GitHub OAuthConfig
 	GitLab OAuthConfig
 	Google OAuthConfig
+
+	SMTP SMTPConfig
+}
+
+type SMTPConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	From     string
 }
 
 type OAuthConfig struct {
@@ -52,6 +63,7 @@ func Load() (*Config, error) {
 		JWTRefreshExpiry: refreshExpiry,
 
 		FrontendCallbackURL: getEnv("FRONTEND_CALLBACK_URL", "nikode://auth/callback"),
+		BaseURL:             getEnv("BASE_URL", "http://localhost:8080"),
 
 		GitHub: OAuthConfig{
 			ClientID:     getEnv("GITHUB_CLIENT_ID", ""),
@@ -67,6 +79,14 @@ func Load() (*Config, error) {
 			ClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 			ClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 			RedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
+		},
+
+		SMTP: SMTPConfig{
+			Host:     getEnv("SMTP_HOST", ""),
+			Port:     getEnv("SMTP_PORT", "587"),
+			Username: getEnv("SMTP_USERNAME", ""),
+			Password: getEnv("SMTP_PASSWORD", ""),
+			From:     getEnv("SMTP_FROM", ""),
 		},
 	}, nil
 }

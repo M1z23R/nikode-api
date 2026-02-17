@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
@@ -12,14 +13,18 @@ import (
 )
 
 type TeamHandler struct {
-	teamService *services.TeamService
-	userService *services.UserService
+	teamService  TeamServiceInterface
+	userService  UserServiceInterface
+	emailService EmailServiceInterface
+	baseURL      string
 }
 
-func NewTeamHandler(teamService *services.TeamService, userService *services.UserService) *TeamHandler {
+func NewTeamHandler(teamService TeamServiceInterface, userService UserServiceInterface, emailService EmailServiceInterface, baseURL string) *TeamHandler {
 	return &TeamHandler{
-		teamService: teamService,
-		userService: userService,
+		teamService:  teamService,
+		userService:  userService,
+		emailService: emailService,
+		baseURL:      baseURL,
 	}
 }
 
@@ -270,12 +275,29 @@ func (h *TeamHandler) InviteMember(c *drift.Context) {
 		return
 	}
 
-	if err := h.teamService.AddMember(context.Background(), teamID, invitee.ID); err != nil {
-		c.InternalServerError("failed to add member")
+	invite, err := h.teamService.CreateInvite(context.Background(), teamID, userID, invitee.ID)
+	if err != nil {
+		if errors.Is(err, services.ErrAlreadyMember) {
+			c.BadRequest("user is already a team member")
+			return
+		}
+		c.InternalServerError("failed to create invite")
 		return
 	}
 
-	_ = c.JSON(200, map[string]string{"message": "member added"})
+	team, _ := h.teamService.GetByID(context.Background(), teamID)
+	inviter, _ := h.userService.GetByID(context.Background(), userID)
+	if team != nil && inviter != nil {
+		inviteURL := fmt.Sprintf("%s/invite/%s", h.baseURL, invite.ID)
+		_ = h.emailService.SendTeamInvite(invitee.Email, team.Name, inviter.Name, inviteURL)
+	}
+
+	_ = c.JSON(201, dto.TeamInviteResponse{
+		ID:        invite.ID,
+		TeamID:    invite.TeamID,
+		Status:    invite.Status,
+		CreatedAt: invite.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	})
 }
 
 func (h *TeamHandler) RemoveMember(c *drift.Context) {
@@ -351,4 +373,180 @@ func (h *TeamHandler) LeaveTeam(c *drift.Context) {
 	}
 
 	_ = c.JSON(200, map[string]string{"message": "left team"})
+}
+
+func (h *TeamHandler) GetTeamInvites(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	teamID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.BadRequest("invalid team id")
+		return
+	}
+
+	isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can view invites")
+		return
+	}
+
+	invites, err := h.teamService.GetTeamPendingInvites(context.Background(), teamID)
+	if err != nil {
+		c.InternalServerError("failed to get invites")
+		return
+	}
+
+	response := make([]dto.TeamInviteResponse, len(invites))
+	for i, inv := range invites {
+		response[i] = dto.TeamInviteResponse{
+			ID:        inv.ID,
+			TeamID:    inv.TeamID,
+			Status:    inv.Status,
+			CreatedAt: inv.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+		if inv.Invitee != nil {
+			response[i].Invitee = &dto.UserResponse{
+				ID:        inv.Invitee.ID,
+				Email:     inv.Invitee.Email,
+				Name:      inv.Invitee.Name,
+				AvatarURL: inv.Invitee.AvatarURL,
+				Provider:  inv.Invitee.Provider,
+			}
+		}
+	}
+
+	_ = c.JSON(200, response)
+}
+
+func (h *TeamHandler) CancelInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	teamID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.BadRequest("invalid team id")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	isOwner, err := h.teamService.IsOwner(context.Background(), teamID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can cancel invites")
+		return
+	}
+
+	if err := h.teamService.CancelInvite(context.Background(), inviteID, teamID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to cancel invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite cancelled"})
+}
+
+func (h *TeamHandler) GetMyInvites(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	invites, err := h.teamService.GetUserPendingInvites(context.Background(), userID)
+	if err != nil {
+		c.InternalServerError("failed to get invites")
+		return
+	}
+
+	response := make([]dto.TeamInviteResponse, len(invites))
+	for i, inv := range invites {
+		response[i] = dto.TeamInviteResponse{
+			ID:        inv.ID,
+			TeamID:    inv.TeamID,
+			Status:    inv.Status,
+			CreatedAt: inv.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+		if inv.Team != nil {
+			response[i].Team = &dto.TeamResponse{
+				ID:      inv.Team.ID,
+				Name:    inv.Team.Name,
+				OwnerID: inv.Team.OwnerID,
+			}
+		}
+		if inv.Inviter != nil {
+			response[i].Inviter = &dto.UserResponse{
+				ID:        inv.Inviter.ID,
+				Email:     inv.Inviter.Email,
+				Name:      inv.Inviter.Name,
+				AvatarURL: inv.Inviter.AvatarURL,
+				Provider:  inv.Inviter.Provider,
+			}
+		}
+	}
+
+	_ = c.JSON(200, response)
+}
+
+func (h *TeamHandler) AcceptInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	if err := h.teamService.AcceptInvite(context.Background(), inviteID, userID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to accept invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite accepted"})
+}
+
+func (h *TeamHandler) DeclineInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	if err := h.teamService.DeclineInvite(context.Background(), inviteID, userID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to decline invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite declined"})
 }

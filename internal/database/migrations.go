@@ -75,6 +75,19 @@ var migrations = []string{
 	`CREATE INDEX IF NOT EXISTS idx_workspaces_team_id ON workspaces(team_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_collections_workspace_id ON collections(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
+
+	`CREATE TABLE IF NOT EXISTS team_invites (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+		inviter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		invitee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		status VARCHAR(20) NOT NULL DEFAULT 'pending',
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+		UNIQUE(team_id, invitee_id)
+	)`,
+	`CREATE INDEX IF NOT EXISTS idx_team_invites_invitee_id ON team_invites(invitee_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_team_invites_team_id ON team_invites(team_id)`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {

@@ -43,16 +43,18 @@ func main() {
 	teamService := services.NewTeamService(db)
 	workspaceService := services.NewWorkspaceService(db, teamService)
 	collectionService := services.NewCollectionService(db)
+	emailService := services.NewEmailService(cfg.SMTP)
 
 	hub := sse.NewHub()
 	go hub.Run()
 
 	authHandler := handlers.NewAuthHandler(cfg, userService, tokenService, jwtService)
 	userHandler := handlers.NewUserHandler(userService)
-	teamHandler := handlers.NewTeamHandler(teamService, userService)
+	teamHandler := handlers.NewTeamHandler(teamService, userService, emailService, cfg.BaseURL)
 	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, teamService)
 	collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, hub)
 	sseHandler := handlers.NewSSEHandler(hub, workspaceService)
+	inviteHandler := handlers.NewInviteHandler(teamService, userService)
 
 	app := drift.New()
 
@@ -97,6 +99,12 @@ func main() {
 	protected.Post("/teams/:id/members", teamHandler.InviteMember)
 	protected.Delete("/teams/:id/members/:memberId", teamHandler.RemoveMember)
 	protected.Post("/teams/:id/leave", teamHandler.LeaveTeam)
+	protected.Get("/teams/:id/invites", teamHandler.GetTeamInvites)
+	protected.Delete("/teams/:id/invites/:inviteId", teamHandler.CancelInvite)
+
+	protected.Get("/invites", teamHandler.GetMyInvites)
+	protected.Post("/invites/:inviteId/accept", teamHandler.AcceptInvite)
+	protected.Post("/invites/:inviteId/decline", teamHandler.DeclineInvite)
 
 	protected.Get("/workspaces", workspaceHandler.List)
 	protected.Post("/workspaces", workspaceHandler.Create)
@@ -117,6 +125,11 @@ func main() {
 	api.Get("/health", func(c *drift.Context) {
 		_ = c.JSON(200, map[string]string{"status": "ok"})
 	})
+
+	// Public invite pages (no auth required)
+	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
+	app.Post("/invite/:inviteId/accept", inviteHandler.AcceptInvite)
+	app.Post("/invite/:inviteId/decline", inviteHandler.DeclineInvite)
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)

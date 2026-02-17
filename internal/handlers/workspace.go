@@ -3,19 +3,18 @@ package handlers
 import (
 	"context"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/middleware"
-	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type WorkspaceHandler struct {
-	workspaceService *services.WorkspaceService
-	teamService      *services.TeamService
+	workspaceService WorkspaceServiceInterface
+	teamService      TeamServiceInterface
 }
 
-func NewWorkspaceHandler(workspaceService *services.WorkspaceService, teamService *services.TeamService) *WorkspaceHandler {
+func NewWorkspaceHandler(workspaceService WorkspaceServiceInterface, teamService TeamServiceInterface) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		workspaceService: workspaceService,
 		teamService:      teamService,

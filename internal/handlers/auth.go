@@ -7,21 +7,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/config"
 	"github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/oauth"
 	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type AuthHandler struct {
 	cfg          *config.Config
 	providers    map[string]oauth.Provider
-	userService  *services.UserService
-	tokenService *services.TokenService
-	jwtService   *services.JWTService
+	userService  UserServiceInterface
+	tokenService TokenServiceInterface
+	jwtService   JWTServiceInterface
 	states       sync.Map
 	authCodes    sync.Map
 }
@@ -37,9 +37,9 @@ type authCodeData struct {
 
 func NewAuthHandler(
 	cfg *config.Config,
-	userService *services.UserService,
-	tokenService *services.TokenService,
-	jwtService *services.JWTService,
+	userService UserServiceInterface,
+	tokenService TokenServiceInterface,
+	jwtService JWTServiceInterface,
 ) *AuthHandler {
 	h := &AuthHandler{
 		cfg:          cfg,

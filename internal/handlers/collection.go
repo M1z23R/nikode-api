@@ -4,24 +4,23 @@ import (
 	"context"
 	"errors"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
-	"github.com/dimitrije/nikode-api/internal/sse"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type CollectionHandler struct {
-	collectionService *services.CollectionService
-	workspaceService  *services.WorkspaceService
-	hub               *sse.Hub
+	collectionService CollectionServiceInterface
+	workspaceService  WorkspaceServiceInterface
+	hub               SSEHubInterface
 }
 
 func NewCollectionHandler(
-	collectionService *services.CollectionService,
-	workspaceService *services.WorkspaceService,
-	hub *sse.Hub,
+	collectionService CollectionServiceInterface,
+	workspaceService WorkspaceServiceInterface,
+	hub SSEHubInterface,
 ) *CollectionHandler {
 	return &CollectionHandler{
 		collectionService: collectionService,

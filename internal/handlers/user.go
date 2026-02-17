@@ -3,18 +3,17 @@ package handlers
 import (
 	"context"
 
-	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/dimitrije/nikode-api/internal/middleware"
-	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 type UserHandler struct {
-	userService *services.UserService
+	userService UserServiceInterface
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
+func NewUserHandler(userService UserServiceInterface) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 

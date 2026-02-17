@@ -11,8 +11,11 @@ import (
 )
 
 var (
-	ErrCannotRemoveOwner = errors.New("cannot remove team owner")
-	ErrMemberNotFound    = errors.New("member not found")
+	ErrCannotRemoveOwner  = errors.New("cannot remove team owner")
+	ErrMemberNotFound     = errors.New("member not found")
+	ErrInviteNotFound     = errors.New("invite not found")
+	ErrAlreadyMember      = errors.New("user is already a team member")
+	ErrInviteAlreadyExists = errors.New("invite already exists")
 )
 
 type TeamService struct {
@@ -185,4 +188,185 @@ func (s *TeamService) RemoveMember(ctx context.Context, teamID, userID uuid.UUID
 		DELETE FROM team_members WHERE team_id = $1 AND user_id = $2
 	`, teamID, userID)
 	return err
+}
+
+func (s *TeamService) CreateInvite(ctx context.Context, teamID, inviterID, inviteeID uuid.UUID) (*models.TeamInvite, error) {
+	isMember, err := s.IsMember(ctx, teamID, inviteeID)
+	if err != nil {
+		return nil, err
+	}
+	if isMember {
+		return nil, ErrAlreadyMember
+	}
+
+	var invite models.TeamInvite
+	err = s.db.Pool.QueryRow(ctx, `
+		INSERT INTO team_invites (team_id, inviter_id, invitee_id, status)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (team_id, invitee_id) DO UPDATE SET
+			inviter_id = EXCLUDED.inviter_id,
+			status = EXCLUDED.status,
+			updated_at = NOW()
+		RETURNING id, team_id, inviter_id, invitee_id, status, created_at, updated_at
+	`, teamID, inviterID, inviteeID, models.InviteStatusPending).Scan(
+		&invite.ID, &invite.TeamID, &invite.InviterID, &invite.InviteeID,
+		&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create invite: %w", err)
+	}
+	return &invite, nil
+}
+
+func (s *TeamService) GetInviteByID(ctx context.Context, inviteID uuid.UUID) (*models.TeamInvite, error) {
+	var invite models.TeamInvite
+	err := s.db.Pool.QueryRow(ctx, `
+		SELECT id, team_id, inviter_id, invitee_id, status, created_at, updated_at
+		FROM team_invites WHERE id = $1
+	`, inviteID).Scan(
+		&invite.ID, &invite.TeamID, &invite.InviterID, &invite.InviteeID,
+		&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
+	)
+	if err != nil {
+		return nil, ErrInviteNotFound
+	}
+	return &invite, nil
+}
+
+func (s *TeamService) GetUserPendingInvites(ctx context.Context, userID uuid.UUID) ([]models.TeamInvite, error) {
+	rows, err := s.db.Pool.Query(ctx, `
+		SELECT ti.id, ti.team_id, ti.inviter_id, ti.invitee_id, ti.status, ti.created_at, ti.updated_at,
+		       t.id, t.name, t.owner_id, t.created_at, t.updated_at,
+		       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+		FROM team_invites ti
+		JOIN teams t ON ti.team_id = t.id
+		JOIN users u ON ti.inviter_id = u.id
+		WHERE ti.invitee_id = $1 AND ti.status = $2
+		ORDER BY ti.created_at DESC
+	`, userID, models.InviteStatusPending)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var invites []models.TeamInvite
+	for rows.Next() {
+		var invite models.TeamInvite
+		var team models.Team
+		var inviter models.User
+		if err := rows.Scan(
+			&invite.ID, &invite.TeamID, &invite.InviterID, &invite.InviteeID,
+			&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
+			&team.ID, &team.Name, &team.OwnerID, &team.CreatedAt, &team.UpdatedAt,
+			&inviter.ID, &inviter.Email, &inviter.Name, &inviter.AvatarURL,
+			&inviter.Provider, &inviter.CreatedAt, &inviter.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		invite.Team = &team
+		invite.Inviter = &inviter
+		invites = append(invites, invite)
+	}
+	return invites, nil
+}
+
+func (s *TeamService) GetTeamPendingInvites(ctx context.Context, teamID uuid.UUID) ([]models.TeamInvite, error) {
+	rows, err := s.db.Pool.Query(ctx, `
+		SELECT ti.id, ti.team_id, ti.inviter_id, ti.invitee_id, ti.status, ti.created_at, ti.updated_at,
+		       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+		FROM team_invites ti
+		JOIN users u ON ti.invitee_id = u.id
+		WHERE ti.team_id = $1 AND ti.status = $2
+		ORDER BY ti.created_at DESC
+	`, teamID, models.InviteStatusPending)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var invites []models.TeamInvite
+	for rows.Next() {
+		var invite models.TeamInvite
+		var invitee models.User
+		if err := rows.Scan(
+			&invite.ID, &invite.TeamID, &invite.InviterID, &invite.InviteeID,
+			&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
+			&invitee.ID, &invitee.Email, &invitee.Name, &invitee.AvatarURL,
+			&invitee.Provider, &invitee.CreatedAt, &invitee.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		invite.Invitee = &invitee
+		invites = append(invites, invite)
+	}
+	return invites, nil
+}
+
+func (s *TeamService) AcceptInvite(ctx context.Context, inviteID, userID uuid.UUID) error {
+	tx, err := s.db.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var invite models.TeamInvite
+	err = tx.QueryRow(ctx, `
+		SELECT id, team_id, invitee_id, status FROM team_invites WHERE id = $1
+	`, inviteID).Scan(&invite.ID, &invite.TeamID, &invite.InviteeID, &invite.Status)
+	if err != nil {
+		return ErrInviteNotFound
+	}
+
+	if invite.InviteeID != userID {
+		return ErrInviteNotFound
+	}
+
+	if invite.Status != models.InviteStatusPending {
+		return ErrInviteNotFound
+	}
+
+	_, err = tx.Exec(ctx, `
+		UPDATE team_invites SET status = $1, updated_at = NOW() WHERE id = $2
+	`, models.InviteStatusAccepted, inviteID)
+	if err != nil {
+		return fmt.Errorf("failed to update invite: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, `
+		INSERT INTO team_members (team_id, user_id, role)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (team_id, user_id) DO NOTHING
+	`, invite.TeamID, userID, models.RoleMember)
+	if err != nil {
+		return fmt.Errorf("failed to add member: %w", err)
+	}
+
+	return tx.Commit(ctx)
+}
+
+func (s *TeamService) DeclineInvite(ctx context.Context, inviteID, userID uuid.UUID) error {
+	result, err := s.db.Pool.Exec(ctx, `
+		UPDATE team_invites SET status = $1, updated_at = NOW()
+		WHERE id = $2 AND invitee_id = $3 AND status = $4
+	`, models.InviteStatusDeclined, inviteID, userID, models.InviteStatusPending)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrInviteNotFound
+	}
+	return nil
+}
+
+func (s *TeamService) CancelInvite(ctx context.Context, inviteID, teamID uuid.UUID) error {
+	result, err := s.db.Pool.Exec(ctx, `
+		DELETE FROM team_invites WHERE id = $1 AND team_id = $2 AND status = $3
+	`, inviteID, teamID, models.InviteStatusPending)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrInviteNotFound
+	}
+	return nil
 }
