@@ -13,6 +13,12 @@ If you want to self-host your own Nikode backend for your team or organization, 
 - **Collections**: Store API collection data as JSON with optimistic locking for conflict resolution
 - **Real-time Sync**: Server-Sent Events for live updates when collections change
 
+## Tech Stack
+
+- **Framework**: [Drift](https://github.com/M1z23R/drift) - A fast, lightweight, and expressive Go web framework
+- **Database**: PostgreSQL 14+ with automatic migrations
+- **Authentication**: OAuth 2.0 (GitHub, GitLab, Google) with JWT tokens
+
 ## Requirements
 
 - Go 1.21+
