@@ -29,7 +29,8 @@ func (m *MockUserService) GetByID(ctx context.Context, id uuid.UUID) (*models.Us
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.User), args.Error(1)
+	user, _ := args.Get(0).(*models.User)
+	return user, args.Error(1)
 }
 
 func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
@@ -37,7 +38,8 @@ func (m *MockUserService) GetByEmail(ctx context.Context, email string) (*models
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.User), args.Error(1)
+	user, _ := args.Get(0).(*models.User)
+	return user, args.Error(1)
 }
 
 func (m *MockUserService) Update(ctx context.Context, id uuid.UUID, name string) (*models.User, error) {
@@ -45,7 +47,8 @@ func (m *MockUserService) Update(ctx context.Context, id uuid.UUID, name string)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.User), args.Error(1)
+	user, _ := args.Get(0).(*models.User)
+	return user, args.Error(1)
 }
 
 // MockTeamService mocks the TeamService

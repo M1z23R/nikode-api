@@ -47,7 +47,7 @@ func (h *TeamHandler) Create(c *drift.Context) {
 		return
 	}
 
-	c.JSON(201, dto.TeamResponse{
+	_ = c.JSON(201, dto.TeamResponse{
 		ID:      team.ID,
 		Name:    team.Name,
 		OwnerID: team.OwnerID,
@@ -78,7 +78,7 @@ func (h *TeamHandler) List(c *drift.Context) {
 		}
 	}
 
-	c.JSON(200, response)
+	_ = c.JSON(200, response)
 }
 
 func (h *TeamHandler) Get(c *drift.Context) {
@@ -111,7 +111,7 @@ func (h *TeamHandler) Get(c *drift.Context) {
 		role = "owner"
 	}
 
-	c.JSON(200, dto.TeamResponse{
+	_ = c.JSON(200, dto.TeamResponse{
 		ID:      team.ID,
 		Name:    team.Name,
 		OwnerID: team.OwnerID,
@@ -155,7 +155,7 @@ func (h *TeamHandler) Update(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.TeamResponse{
+	_ = c.JSON(200, dto.TeamResponse{
 		ID:      team.ID,
 		Name:    team.Name,
 		OwnerID: team.OwnerID,
@@ -187,7 +187,7 @@ func (h *TeamHandler) Delete(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "team deleted"})
+	_ = c.JSON(200, map[string]string{"message": "team deleted"})
 }
 
 func (h *TeamHandler) GetMembers(c *drift.Context) {
@@ -231,7 +231,7 @@ func (h *TeamHandler) GetMembers(c *drift.Context) {
 		}
 	}
 
-	c.JSON(200, response)
+	_ = c.JSON(200, response)
 }
 
 func (h *TeamHandler) InviteMember(c *drift.Context) {
@@ -275,7 +275,7 @@ func (h *TeamHandler) InviteMember(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "member added"})
+	_ = c.JSON(200, map[string]string{"message": "member added"})
 }
 
 func (h *TeamHandler) RemoveMember(c *drift.Context) {
@@ -321,7 +321,7 @@ func (h *TeamHandler) RemoveMember(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "member removed"})
+	_ = c.JSON(200, map[string]string{"message": "member removed"})
 }
 
 func (h *TeamHandler) LeaveTeam(c *drift.Context) {
@@ -350,5 +350,5 @@ func (h *TeamHandler) LeaveTeam(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "left team"})
+	_ = c.JSON(200, map[string]string{"message": "left team"})
 }

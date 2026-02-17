@@ -61,7 +61,7 @@ func (h *WorkspaceHandler) Create(c *drift.Context) {
 		wsType = "team"
 	}
 
-	c.JSON(201, dto.WorkspaceResponse{
+	_ = c.JSON(201, dto.WorkspaceResponse{
 		ID:     workspace.ID,
 		Name:   workspace.Name,
 		UserID: workspace.UserID,
@@ -98,7 +98,7 @@ func (h *WorkspaceHandler) List(c *drift.Context) {
 		}
 	}
 
-	c.JSON(200, response)
+	_ = c.JSON(200, response)
 }
 
 func (h *WorkspaceHandler) Get(c *drift.Context) {
@@ -133,7 +133,7 @@ func (h *WorkspaceHandler) Get(c *drift.Context) {
 		wsType = "team"
 	}
 
-	c.JSON(200, dto.WorkspaceResponse{
+	_ = c.JSON(200, dto.WorkspaceResponse{
 		ID:     workspace.ID,
 		Name:   workspace.Name,
 		UserID: workspace.UserID,
@@ -185,7 +185,7 @@ func (h *WorkspaceHandler) Update(c *drift.Context) {
 		wsType = "team"
 	}
 
-	c.JSON(200, dto.WorkspaceResponse{
+	_ = c.JSON(200, dto.WorkspaceResponse{
 		ID:     workspace.ID,
 		Name:   workspace.Name,
 		UserID: workspace.UserID,
@@ -220,5 +220,5 @@ func (h *WorkspaceHandler) Delete(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "workspace deleted"})
+	_ = c.JSON(200, map[string]string{"message": "workspace deleted"})
 }

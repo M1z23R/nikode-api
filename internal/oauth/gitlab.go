@@ -51,7 +51,7 @@ func (p *GitLabProvider) ExchangeCode(ctx context.Context, code string) (*UserIn
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("gitlab api returned status %d", resp.StatusCode)

@@ -30,7 +30,7 @@ func TestAuth_MissingAuthorizationHeader(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -48,7 +48,7 @@ func TestAuth_InvalidAuthorizationFormat_NoBearer(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -67,7 +67,7 @@ func TestAuth_InvalidAuthorizationFormat_OnlyBearer(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -86,7 +86,7 @@ func TestAuth_InvalidToken(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -112,7 +112,7 @@ func TestAuth_ExpiredToken(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -137,7 +137,7 @@ func TestAuth_WrongSecret(t *testing.T) {
 	// Validate with secret-2
 	app.Use(Auth(jwtSvc2))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -164,7 +164,7 @@ func TestAuth_ValidToken(t *testing.T) {
 	app.Get("/protected", func(c *drift.Context) {
 		extractedUserID = GetUserID(c)
 		extractedEmail = GetUserEmail(c)
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
@@ -187,7 +187,7 @@ func TestAuth_BearerCaseInsensitive(t *testing.T) {
 
 	app.Use(Auth(jwtSvc))
 	app.Get("/protected", func(c *drift.Context) {
-		c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		_ = c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	testCases := []string{"bearer", "BEARER", "BeArEr"}
@@ -212,7 +212,7 @@ func TestGetUserID_NotSet(t *testing.T) {
 
 	app.Get("/test", func(c *drift.Context) {
 		extractedUserID = GetUserID(c)
-		c.JSON(http.StatusOK, nil)
+		_ = c.JSON(http.StatusOK, nil)
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -230,7 +230,7 @@ func TestGetUserEmail_NotSet(t *testing.T) {
 
 	app.Get("/test", func(c *drift.Context) {
 		extractedEmail = GetUserEmail(c)
-		c.JSON(http.StatusOK, nil)
+		_ = c.JSON(http.StatusOK, nil)
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)

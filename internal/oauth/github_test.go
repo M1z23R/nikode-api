@@ -31,9 +31,9 @@ func TestGitHubProvider_GetConsentURL(t *testing.T) {
 
 func TestGitHubProvider_ExchangeCode_Success(t *testing.T) {
 	// Mock OAuth token endpoint
-	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer"}`))
+		_, _ = w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer"}`))
 	}))
 	defer tokenServer.Close()
 
@@ -41,7 +41,7 @@ func TestGitHubProvider_ExchangeCode_Success(t *testing.T) {
 	apiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/user" {
 			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"id": 12345,
 				"login": "testuser",
 				"name": "Test User",
@@ -75,9 +75,9 @@ func TestGitHubProvider_ExchangeCode_WithEmailFallback(t *testing.T) {
 	// This would require httptest server setup
 
 	// Create mock servers
-	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	tokenServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer"}`))
+		_, _ = w.Write([]byte(`{"access_token":"test-token","token_type":"Bearer"}`))
 	}))
 	defer tokenServer.Close()
 
@@ -87,7 +87,7 @@ func TestGitHubProvider_ExchangeCode_WithEmailFallback(t *testing.T) {
 		switch r.URL.Path {
 		case "/user":
 			// No email in user response
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"id": 12345,
 				"login": "testuser",
 				"name": "Test User",
@@ -96,7 +96,7 @@ func TestGitHubProvider_ExchangeCode_WithEmailFallback(t *testing.T) {
 			}`))
 		case "/user/emails":
 			userEmailsFetched = true
-			w.Write([]byte(`[
+			_, _ = w.Write([]byte(`[
 				{"email": "private@example.com", "primary": true, "verified": true},
 				{"email": "secondary@example.com", "primary": false, "verified": true}
 			]`))
@@ -112,9 +112,9 @@ func TestGitHubProvider_ExchangeCode_WithEmailFallback(t *testing.T) {
 func TestGitHubProvider_NameFallbackToLogin(t *testing.T) {
 	// Test scenario: name is empty, should fallback to login
 
-	apiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	apiServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"id": 12345,
 			"login": "testuser",
 			"name": "",

@@ -114,7 +114,7 @@ func (h *SSEHandler) Subscribe(c *drift.Context) {
 
 	h.hub.SubscribeToWorkspace(clientID, workspaceID)
 
-	c.JSON(200, map[string]string{
+	_ = c.JSON(200, map[string]string{
 		"message": fmt.Sprintf("subscribed to workspace %s", workspaceID),
 	})
 }
@@ -140,7 +140,7 @@ func (h *SSEHandler) Unsubscribe(c *drift.Context) {
 
 	h.hub.UnsubscribeFromWorkspace(clientID, workspaceID)
 
-	c.JSON(200, map[string]string{
+	_ = c.JSON(200, map[string]string{
 		"message": fmt.Sprintf("unsubscribed from workspace %s", workspaceID),
 	})
 }

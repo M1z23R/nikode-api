@@ -294,7 +294,7 @@ func (h *AuthHandler) Logout(c *drift.Context) {
 		_ = h.tokenService.RevokeRefreshToken(context.Background(), tokenHash)
 	}
 
-	c.JSON(200, map[string]string{"message": "logged out"})
+	_ = c.JSON(200, map[string]string{"message": "logged out"})
 }
 
 func (h *AuthHandler) LogoutAll(c *drift.Context) {
@@ -309,7 +309,7 @@ func (h *AuthHandler) LogoutAll(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "all sessions logged out"})
+	_ = c.JSON(200, map[string]string{"message": "all sessions logged out"})
 }
 
 func (h *AuthHandler) redirectWithError(c *drift.Context, errMsg string) {

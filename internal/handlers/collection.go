@@ -68,7 +68,7 @@ func (h *CollectionHandler) Create(c *drift.Context) {
 		return
 	}
 
-	c.JSON(201, dto.CollectionResponse{
+	_ = c.JSON(201, dto.CollectionResponse{
 		ID:          collection.ID,
 		WorkspaceID: collection.WorkspaceID,
 		Name:        collection.Name,
@@ -117,7 +117,7 @@ func (h *CollectionHandler) List(c *drift.Context) {
 		}
 	}
 
-	c.JSON(200, response)
+	_ = c.JSON(200, response)
 }
 
 func (h *CollectionHandler) Get(c *drift.Context) {
@@ -147,7 +147,7 @@ func (h *CollectionHandler) Get(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.CollectionResponse{
+	_ = c.JSON(200, dto.CollectionResponse{
 		ID:          collection.ID,
 		WorkspaceID: collection.WorkspaceID,
 		Name:        collection.Name,
@@ -202,7 +202,7 @@ func (h *CollectionHandler) Update(c *drift.Context) {
 			if col, _ := h.collectionService.GetByID(ctx, collectionID); col != nil {
 				currentVersion = col.Version
 			}
-			c.JSON(409, map[string]interface{}{
+			_ = c.JSON(409, map[string]any{
 				"code":            "VERSION_CONFLICT",
 				"message":         "collection has been modified by another user",
 				"current_version": currentVersion,
@@ -223,7 +223,7 @@ func (h *CollectionHandler) Update(c *drift.Context) {
 
 	h.hub.BroadcastCollectionUpdate(collection.WorkspaceID, collection.ID, userID, collection.Version)
 
-	c.JSON(200, dto.CollectionResponse{
+	_ = c.JSON(200, dto.CollectionResponse{
 		ID:          collection.ID,
 		WorkspaceID: collection.WorkspaceID,
 		Name:        collection.Name,
@@ -265,5 +265,5 @@ func (h *CollectionHandler) Delete(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, map[string]string{"message": "collection deleted"})
+	_ = c.JSON(200, map[string]string{"message": "collection deleted"})
 }

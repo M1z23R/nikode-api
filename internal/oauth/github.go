@@ -47,7 +47,7 @@ func (p *GitHubProvider) ExchangeCode(ctx context.Context, code string) (*UserIn
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
-	defer userResp.Body.Close()
+	defer func() { _ = userResp.Body.Close() }()
 
 	if userResp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("github api returned status %d", userResp.StatusCode)
@@ -92,7 +92,7 @@ func (p *GitHubProvider) getPrimaryEmail(ctx context.Context, client *http.Clien
 	if err != nil {
 		return "", fmt.Errorf("failed to get user emails: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var emails []struct {
 		Email    string `json:"email"`

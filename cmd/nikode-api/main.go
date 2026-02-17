@@ -115,7 +115,7 @@ func main() {
 	protected.Post("/sse/:clientId/unsubscribe/:workspaceId", sseHandler.Unsubscribe)
 
 	api.Get("/health", func(c *drift.Context) {
-		c.JSON(200, map[string]string{"status": "ok"})
+		_ = c.JSON(200, map[string]string{"status": "ok"})
 	})
 
 	go func() {

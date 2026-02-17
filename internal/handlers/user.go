@@ -31,7 +31,7 @@ func (h *UserHandler) GetMe(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.UserResponse{
+	_ = c.JSON(200, dto.UserResponse{
 		ID:        user.ID,
 		Email:     user.Email,
 		Name:      user.Name,
@@ -64,7 +64,7 @@ func (h *UserHandler) UpdateMe(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.UserResponse{
+	_ = c.JSON(200, dto.UserResponse{
 		ID:        user.ID,
 		Email:     user.Email,
 		Name:      user.Name,
