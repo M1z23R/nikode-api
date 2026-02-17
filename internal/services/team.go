@@ -28,7 +28,7 @@ func (s *TeamService) Create(ctx context.Context, name string, ownerID uuid.UUID
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	var team models.Team
 	err = tx.QueryRow(ctx, `

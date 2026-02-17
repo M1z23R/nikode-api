@@ -100,7 +100,7 @@ func (h *AuthHandler) GetConsentURL(c *drift.Context) {
 
 	h.states.Store(state, stateData{expiresAt: time.Now().Add(10 * time.Minute)})
 
-	c.JSON(200, dto.ConsentURLResponse{
+	_ = c.JSON(200, dto.ConsentURLResponse{
 		URL: p.GetConsentURL(state),
 	})
 }
@@ -126,7 +126,8 @@ func (h *AuthHandler) Callback(c *drift.Context) {
 		return
 	}
 
-	if time.Now().After(sd.(stateData).expiresAt) {
+	sdTyped, ok := sd.(stateData)
+	if !ok || time.Now().After(sdTyped.expiresAt) {
 		h.redirectWithError(c, "state expired")
 		return
 	}
@@ -189,8 +190,8 @@ func (h *AuthHandler) ExchangeCode(c *drift.Context) {
 		return
 	}
 
-	codeData := acd.(authCodeData)
-	if time.Now().After(codeData.expiresAt) {
+	codeData, ok := acd.(authCodeData)
+	if !ok || time.Now().After(codeData.expiresAt) {
 		c.Unauthorized("code expired")
 		return
 	}
@@ -216,7 +217,7 @@ func (h *AuthHandler) ExchangeCode(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.TokenResponse{
+	_ = c.JSON(200, dto.TokenResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 		ExpiresIn:    tokenPair.ExpiresIn,
@@ -274,7 +275,7 @@ func (h *AuthHandler) RefreshToken(c *drift.Context) {
 		return
 	}
 
-	c.JSON(200, dto.TokenResponse{
+	_ = c.JSON(200, dto.TokenResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
 		ExpiresIn:    tokenPair.ExpiresIn,

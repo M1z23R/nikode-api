@@ -20,7 +20,8 @@ func (m *MockUserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.User), args.Error(1)
+	user, _ := args.Get(0).(*models.User)
+	return user, args.Error(1)
 }
 
 func (m *MockUserService) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {

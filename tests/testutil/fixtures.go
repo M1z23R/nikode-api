@@ -107,7 +107,7 @@ func (f *Fixtures) CreateTeam(t *testing.T, owner *models.User, opts ...TeamOpti
 	if err != nil {
 		t.Fatalf("failed to begin transaction: %v", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	err = tx.QueryRow(ctx, `
 		INSERT INTO teams (name, owner_id)
