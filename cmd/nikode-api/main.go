@@ -55,6 +55,7 @@ func main() {
 	collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, hub)
 	sseHandler := handlers.NewSSEHandler(hub, workspaceService)
 	inviteHandler := handlers.NewInviteHandler(teamService, userService)
+	wsHandler := handlers.NewWebSocketHandler()
 
 	app := drift.New()
 
@@ -125,6 +126,8 @@ func main() {
 	api.Get("/health", func(c *drift.Context) {
 		_ = c.JSON(200, map[string]string{"status": "ok"})
 	})
+
+	api.Get("/ws", wsHandler.Connect)
 
 	// Public invite pages (no auth required)
 	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
