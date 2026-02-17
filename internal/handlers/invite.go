@@ -119,29 +119,41 @@ func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, teamName, i
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Invitation</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; text-align: center; }
-        h1 { color: #333; }
-        p { color: #666; margin: 20px 0; }
-        .team-name { font-weight: bold; color: #333; }
-        .buttons { display: flex; gap: 10px; justify-content: center; margin-top: 30px; }
-        button { padding: 12px 24px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; }
-        .accept { background: #22c55e; color: white; }
-        .accept:hover { background: #16a34a; }
-        .decline { background: #e5e7eb; color: #333; }
-        .decline:hover { background: #d1d5db; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 400px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px 32px; text-align: center; }
+        .icon { margin-bottom: 24px; }
+        .icon svg { width: 48px; height: 48px; }
+        h1 { font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 8px 0; }
+        .subtitle { color: #6b7280; font-size: 14px; margin: 0 0 24px 0; }
+        .team-name { font-size: 18px; font-weight: 600; color: #111827; padding: 16px; background: #f3f4f6; border-radius: 6px; margin-bottom: 32px; }
+        .buttons { display: flex; gap: 12px; justify-content: center; }
+        button { padding: 10px 20px; font-size: 14px; font-weight: 500; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
+        .accept { background: #374151; color: #fff; }
+        .accept:hover { background: #1f2937; }
+        .decline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+        .decline:hover { background: #f3f4f6; }
     </style>
 </head>
 <body>
-    <h1>Team Invitation</h1>
-    <p><strong>%s</strong> has invited you to join</p>
-    <p class="team-name">%s</p>
-    <div class="buttons">
-        <form action="/invite/%s/accept" method="POST" style="display:inline;">
-            <button type="submit" class="accept">Accept</button>
-        </form>
-        <form action="/invite/%s/decline" method="POST" style="display:inline;">
-            <button type="submit" class="decline">Decline</button>
-        </form>
+    <div class="container">
+        <div class="icon">
+            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="#374151"/>
+                <text x="256" y="380" font-family="Arial, Helvetica, sans-serif" font-size="360" font-weight="bold" fill="#f3f4f6" text-anchor="middle">N</text>
+            </svg>
+        </div>
+        <h1>Team Invitation</h1>
+        <p class="subtitle"><strong>%s</strong> has invited you to join</p>
+        <div class="team-name">%s</div>
+        <div class="buttons">
+            <form action="/invite/%s/decline" method="POST" style="display:inline;">
+                <button type="submit" class="decline">Decline</button>
+            </form>
+            <form action="/invite/%s/accept" method="POST" style="display:inline;">
+                <button type="submit" class="accept">Accept</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>`, inviterName, teamName, inviteID, inviteID)
@@ -157,13 +169,24 @@ func (h *InviteHandler) renderMessage(c *drift.Context, message string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Invitation</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; text-align: center; }
-        h1 { color: #22c55e; }
-        p { color: #666; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 400px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px 32px; text-align: center; }
+        .icon { margin-bottom: 24px; }
+        .icon svg { width: 48px; height: 48px; }
+        h1 { font-size: 18px; font-weight: 600; color: #111827; margin: 0; }
     </style>
 </head>
 <body>
-    <h1>%s</h1>
+    <div class="container">
+        <div class="icon">
+            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="#374151"/>
+                <text x="256" y="380" font-family="Arial, Helvetica, sans-serif" font-size="360" font-weight="bold" fill="#f3f4f6" text-anchor="middle">N</text>
+            </svg>
+        </div>
+        <h1>%s</h1>
+    </div>
 </body>
 </html>`, message)
 
@@ -178,14 +201,26 @@ func (h *InviteHandler) renderError(c *drift.Context, message string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; text-align: center; }
-        h1 { color: #ef4444; }
-        p { color: #666; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 400px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px 32px; text-align: center; }
+        .icon { margin-bottom: 24px; }
+        .icon svg { width: 48px; height: 48px; }
+        h1 { font-size: 18px; font-weight: 600; color: #991b1b; margin: 0 0 8px 0; }
+        p { color: #6b7280; font-size: 14px; margin: 0; }
     </style>
 </head>
 <body>
-    <h1>Error</h1>
-    <p>%s</p>
+    <div class="container">
+        <div class="icon">
+            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="#374151"/>
+                <text x="256" y="380" font-family="Arial, Helvetica, sans-serif" font-size="360" font-weight="bold" fill="#f3f4f6" text-anchor="middle">N</text>
+            </svg>
+        </div>
+        <h1>Error</h1>
+        <p>%s</p>
+    </div>
 </body>
 </html>`, message)
 
