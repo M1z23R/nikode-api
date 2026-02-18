@@ -81,27 +81,59 @@ var migrations = []string{
 	`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id)`,
 
 	// Migration: Populate owner_id from user_id for personal workspaces
-	`UPDATE workspaces SET owner_id = user_id WHERE owner_id IS NULL AND user_id IS NOT NULL`,
+	`DO $$
+	BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'workspaces' AND column_name = 'user_id'
+		) THEN
+			UPDATE workspaces SET owner_id = user_id WHERE owner_id IS NULL AND user_id IS NOT NULL;
+		END IF;
+	END $$`,
 
 	// Migration: Populate owner_id from team owner for team workspaces
-	`UPDATE workspaces w SET owner_id = t.owner_id
-	 FROM teams t
-	 WHERE w.owner_id IS NULL AND w.team_id IS NOT NULL AND w.team_id = t.id`,
+	`DO $$
+	BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE table_name = 'teams'
+		) THEN
+			UPDATE workspaces w SET owner_id = t.owner_id
+			FROM teams t
+			WHERE w.owner_id IS NULL AND w.team_id IS NOT NULL AND w.team_id = t.id;
+		END IF;
+	END $$`,
 
 	// Migration: Create workspace_members for personal workspaces (owner as member)
-	`INSERT INTO workspace_members (workspace_id, user_id, role)
-	 SELECT w.id, w.user_id, 'owner'
-	 FROM workspaces w
-	 WHERE w.user_id IS NOT NULL
-	 AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = w.user_id)`,
+	`DO $$
+	BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'workspaces' AND column_name = 'user_id'
+		) THEN
+			INSERT INTO workspace_members (workspace_id, user_id, role)
+			SELECT w.id, w.user_id, 'owner'
+			FROM workspaces w
+			WHERE w.user_id IS NOT NULL
+			AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = w.user_id);
+		END IF;
+	END $$`,
 
 	// Migration: Create workspace_members for team workspaces from team_members
-	`INSERT INTO workspace_members (workspace_id, user_id, role)
-	 SELECT w.id, tm.user_id, tm.role
-	 FROM workspaces w
-	 JOIN team_members tm ON w.team_id = tm.team_id
-	 WHERE w.team_id IS NOT NULL
-	 AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = tm.user_id)`,
+	`DO $$
+	BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.tables
+			WHERE table_name = 'team_members'
+		) THEN
+			INSERT INTO workspace_members (workspace_id, user_id, role)
+			SELECT w.id, tm.user_id, tm.role
+			FROM workspaces w
+			JOIN team_members tm ON w.team_id = tm.team_id
+			WHERE w.team_id IS NOT NULL
+			AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = tm.user_id);
+		END IF;
+	END $$`,
 
 	// Migration: Drop old columns from workspaces table
 	`ALTER TABLE workspaces DROP COLUMN IF EXISTS user_id`,
