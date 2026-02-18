@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
@@ -199,9 +200,20 @@ func (h *WorkspaceHandler) Delete(c *drift.Context) {
 		return
 	}
 
+	// Get members before deleting so we can notify them
+	members, _ := h.workspaceService.GetMembers(ctx, workspaceID)
+
 	if err := h.workspaceService.Delete(ctx, workspaceID); err != nil {
 		c.InternalServerError("failed to delete workspace")
 		return
+	}
+
+	// Notify all members their workspace list changed
+	for _, member := range members {
+		h.hub.BroadcastToUser(member.UserID, "workspaces_changed", hub.WorkspacesChangedData{
+			Reason:      "workspace_deleted",
+			WorkspaceID: workspaceID,
+		})
 	}
 
 	_ = c.JSON(200, map[string]string{"message": "workspace deleted"})
@@ -304,6 +316,12 @@ func (h *WorkspaceHandler) InviteMember(c *drift.Context) {
 		_ = h.emailService.SendWorkspaceInvite(invitee.Email, workspace.Name, inviter.Name, inviteURL)
 	}
 
+	// Notify invitee they have a new pending invite
+	h.hub.BroadcastToUser(invitee.ID, "workspaces_changed", hub.WorkspacesChangedData{
+		Reason:      "invite_received",
+		WorkspaceID: workspaceID,
+	})
+
 	_ = c.JSON(201, dto.WorkspaceInviteResponse{
 		ID:          invite.ID,
 		WorkspaceID: invite.WorkspaceID,
@@ -356,6 +374,12 @@ func (h *WorkspaceHandler) RemoveMember(c *drift.Context) {
 	}
 
 	h.hub.BroadcastMemberLeft(workspaceID, memberID)
+
+	// Notify removed member their workspace list changed
+	h.hub.BroadcastToUser(memberID, "workspaces_changed", hub.WorkspacesChangedData{
+		Reason:      "removed_from_workspace",
+		WorkspaceID: workspaceID,
+	})
 
 	_ = c.JSON(200, map[string]string{"message": "member removed"})
 }
@@ -544,6 +568,14 @@ func (h *WorkspaceHandler) AcceptInvite(c *drift.Context) {
 	user, _ := h.userService.GetByID(context.Background(), userID)
 	if invite != nil && user != nil {
 		h.hub.BroadcastMemberJoined(invite.WorkspaceID, userID, user.Name, user.AvatarURL)
+	}
+
+	// Notify accepting user their workspace list changed
+	if invite != nil {
+		h.hub.BroadcastToUser(userID, "workspaces_changed", hub.WorkspacesChangedData{
+			Reason:      "invite_accepted",
+			WorkspaceID: invite.WorkspaceID,
+		})
 	}
 
 	_ = c.JSON(200, map[string]string{"message": "invite accepted"})

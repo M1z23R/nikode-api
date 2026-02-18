@@ -281,14 +281,18 @@ func TestWorkspaceHandler_Update_Forbidden(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_Success(t *testing.T) {
-	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, mockHub, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
 	workspaceID := uuid.New()
 
 	mockWorkspaceService.On("CanModify", mock.Anything, workspaceID, userID).Return(true, nil)
+	mockWorkspaceService.On("GetMembers", mock.Anything, workspaceID).Return([]models.WorkspaceMember{
+		{UserID: userID},
+	}, nil)
 	mockWorkspaceService.On("Delete", mock.Anything, workspaceID).Return(nil)
+	mockHub.On("BroadcastToUser", userID, "workspaces_changed", mock.Anything).Return()
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -306,6 +310,7 @@ func TestWorkspaceHandler_Delete_Success(t *testing.T) {
 	assert.Contains(t, rec.Body.String(), "workspace deleted")
 
 	mockWorkspaceService.AssertExpectations(t)
+	mockHub.AssertExpectations(t)
 }
 
 func TestWorkspaceHandler_Delete_Forbidden(t *testing.T) {
@@ -343,6 +348,7 @@ func TestWorkspaceHandler_Delete_ServiceError(t *testing.T) {
 	workspaceID := uuid.New()
 
 	mockWorkspaceService.On("CanModify", mock.Anything, workspaceID, userID).Return(true, nil)
+	mockWorkspaceService.On("GetMembers", mock.Anything, workspaceID).Return([]models.WorkspaceMember{}, nil)
 	mockWorkspaceService.On("Delete", mock.Anything, workspaceID).Return(errors.New("database error"))
 
 	app := drift.New()
