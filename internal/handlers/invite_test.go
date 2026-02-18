@@ -16,15 +16,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupInviteTest(t *testing.T) (*testutil.MockWorkspaceService, *InviteHandler) {
+func setupInviteTest(t *testing.T) (*testutil.MockWorkspaceService, *testutil.MockHub, *InviteHandler) {
 	t.Helper()
 	mockWorkspaceService := new(testutil.MockWorkspaceService)
-	handler := NewInviteHandler(mockWorkspaceService)
-	return mockWorkspaceService, handler
+	mockHub := new(testutil.MockHub)
+	handler := NewInviteHandler(mockWorkspaceService, mockHub)
+	return mockWorkspaceService, mockHub, handler
 }
 
 func TestInviteHandler_ViewInvite_Success(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	workspaceID := uuid.New()
@@ -74,7 +75,7 @@ func TestInviteHandler_ViewInvite_Success(t *testing.T) {
 }
 
 func TestInviteHandler_ViewInvite_InvalidID(t *testing.T) {
-	_, handler := setupInviteTest(t)
+	_, _, handler := setupInviteTest(t)
 
 	app := drift.New()
 	app.Get("/invite/:inviteId", handler.ViewInvite)
@@ -89,7 +90,7 @@ func TestInviteHandler_ViewInvite_InvalidID(t *testing.T) {
 }
 
 func TestInviteHandler_ViewInvite_NotFound(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 
@@ -110,7 +111,7 @@ func TestInviteHandler_ViewInvite_NotFound(t *testing.T) {
 }
 
 func TestInviteHandler_ViewInvite_AlreadyAccepted(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	now := time.Now()
@@ -141,7 +142,7 @@ func TestInviteHandler_ViewInvite_AlreadyAccepted(t *testing.T) {
 }
 
 func TestInviteHandler_AcceptInvite_Success(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, mockHub, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	workspaceID := uuid.New()
@@ -166,6 +167,7 @@ func TestInviteHandler_AcceptInvite_Success(t *testing.T) {
 	mockWorkspaceService.On("GetInviteByID", mock.Anything, inviteID).Return(invite, nil)
 	mockWorkspaceService.On("AcceptInvite", mock.Anything, inviteID, inviteeID).Return(nil)
 	mockWorkspaceService.On("GetByID", mock.Anything, workspaceID).Return(workspace, nil)
+	mockHub.On("BroadcastToUser", inviteeID, "workspaces_changed", mock.Anything).Return()
 
 	app := drift.New()
 	app.Post("/invite/:inviteId/accept", handler.AcceptInvite)
@@ -179,10 +181,11 @@ func TestInviteHandler_AcceptInvite_Success(t *testing.T) {
 	assert.Contains(t, rec.Body.String(), "You have joined Test Workspace!")
 
 	mockWorkspaceService.AssertExpectations(t)
+	mockHub.AssertExpectations(t)
 }
 
 func TestInviteHandler_AcceptInvite_InvalidID(t *testing.T) {
-	_, handler := setupInviteTest(t)
+	_, _, handler := setupInviteTest(t)
 
 	app := drift.New()
 	app.Post("/invite/:inviteId/accept", handler.AcceptInvite)
@@ -197,7 +200,7 @@ func TestInviteHandler_AcceptInvite_InvalidID(t *testing.T) {
 }
 
 func TestInviteHandler_AcceptInvite_NotFound(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 
@@ -218,7 +221,7 @@ func TestInviteHandler_AcceptInvite_NotFound(t *testing.T) {
 }
 
 func TestInviteHandler_AcceptInvite_AlreadyProcessed(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	inviteeID := uuid.New()
@@ -251,7 +254,7 @@ func TestInviteHandler_AcceptInvite_AlreadyProcessed(t *testing.T) {
 }
 
 func TestInviteHandler_DeclineInvite_Success(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	inviteeID := uuid.New()
@@ -284,7 +287,7 @@ func TestInviteHandler_DeclineInvite_Success(t *testing.T) {
 }
 
 func TestInviteHandler_DeclineInvite_InvalidID(t *testing.T) {
-	_, handler := setupInviteTest(t)
+	_, _, handler := setupInviteTest(t)
 
 	app := drift.New()
 	app.Post("/invite/:inviteId/decline", handler.DeclineInvite)
@@ -299,7 +302,7 @@ func TestInviteHandler_DeclineInvite_InvalidID(t *testing.T) {
 }
 
 func TestInviteHandler_DeclineInvite_NotFound(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 
@@ -320,7 +323,7 @@ func TestInviteHandler_DeclineInvite_NotFound(t *testing.T) {
 }
 
 func TestInviteHandler_DeclineInvite_AlreadyProcessed(t *testing.T) {
-	mockWorkspaceService, handler := setupInviteTest(t)
+	mockWorkspaceService, _, handler := setupInviteTest(t)
 
 	inviteID := uuid.New()
 	inviteeID := uuid.New()
@@ -336,7 +339,7 @@ func TestInviteHandler_DeclineInvite_AlreadyProcessed(t *testing.T) {
 	}
 
 	mockWorkspaceService.On("GetInviteByID", mock.Anything, inviteID).Return(invite, nil)
-	mockWorkspaceService.On("DeclineInvite", mock.Anything, inviteeID).Return(errors.New("something went wrong"))
+	mockWorkspaceService.On("DeclineInvite", mock.Anything, inviteID, inviteeID).Return(errors.New("something went wrong"))
 
 	app := drift.New()
 	app.Post("/invite/:inviteId/decline", handler.DeclineInvite)

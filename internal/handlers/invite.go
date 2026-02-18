@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/google/uuid"
 	"github.com/m1z23r/drift/pkg/drift"
@@ -12,11 +13,13 @@ import (
 
 type InviteHandler struct {
 	workspaceService WorkspaceServiceInterface
+	hub              HubInterface
 }
 
-func NewInviteHandler(workspaceService WorkspaceServiceInterface) *InviteHandler {
+func NewInviteHandler(workspaceService WorkspaceServiceInterface, hub HubInterface) *InviteHandler {
 	return &InviteHandler{
 		workspaceService: workspaceService,
+		hub:              hub,
 	}
 }
 
@@ -78,6 +81,11 @@ func (h *InviteHandler) AcceptInvite(c *drift.Context) {
 	if workspace != nil {
 		workspaceName = workspace.Name
 	}
+
+	h.hub.BroadcastToUser(invite.InviteeID, "workspaces_changed", hub.WorkspacesChangedData{
+		Reason:      "invite_accepted",
+		WorkspaceID: invite.WorkspaceID,
+	})
 
 	h.renderMessage(c, fmt.Sprintf("You have joined %s!", workspaceName))
 }

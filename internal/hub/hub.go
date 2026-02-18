@@ -67,11 +67,12 @@ type Client struct {
 }
 
 type Hub struct {
-	clients    map[string]*Client
-	register   chan *Client
-	unregister chan *Client
-	broadcast  chan *WorkspaceMessage
-	mu         sync.RWMutex
+	clients       map[string]*Client
+	register      chan *Client
+	unregister    chan *Client
+	broadcast     chan *WorkspaceMessage
+	userBroadcast chan *UserMessage
+	mu            sync.RWMutex
 }
 
 type WorkspaceMessage struct {
@@ -79,12 +80,23 @@ type WorkspaceMessage struct {
 	Event       Event
 }
 
+type UserMessage struct {
+	UserID uuid.UUID
+	Event  Event
+}
+
+type WorkspacesChangedData struct {
+	Reason      string    `json:"reason"`
+	WorkspaceID uuid.UUID `json:"workspace_id"`
+}
+
 func NewHub() *Hub {
 	return &Hub{
-		clients:    make(map[string]*Client),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		broadcast:  make(chan *WorkspaceMessage, 256),
+		clients:       make(map[string]*Client),
+		register:      make(chan *Client),
+		unregister:    make(chan *Client),
+		broadcast:     make(chan *WorkspaceMessage, 256),
+		userBroadcast: make(chan *UserMessage, 256),
 	}
 }
 
@@ -121,6 +133,20 @@ func (h *Hub) Run() {
 			data, _ := json.Marshal(msg.Event)
 			for _, client := range h.clients {
 				if client.Workspaces[msg.WorkspaceID] {
+					select {
+					case client.Send <- data:
+					default:
+						// Client buffer full, skip
+					}
+				}
+			}
+			h.mu.RUnlock()
+
+		case msg := <-h.userBroadcast:
+			h.mu.RLock()
+			data, _ := json.Marshal(msg.Event)
+			for _, client := range h.clients {
+				if client.UserID == msg.UserID {
 					select {
 					case client.Send <- data:
 					default:
@@ -245,6 +271,16 @@ func (h *Hub) BroadcastMemberLeft(workspaceID, userID uuid.UUID) {
 			Data: MemberLeftData{
 				UserID: userID,
 			},
+		},
+	}
+}
+
+func (h *Hub) BroadcastToUser(userID uuid.UUID, eventType string, data any) {
+	h.userBroadcast <- &UserMessage{
+		UserID: userID,
+		Event: Event{
+			Type: eventType,
+			Data: data,
 		},
 	}
 }

@@ -337,6 +337,10 @@ func (m *MockHub) BroadcastMemberLeft(workspaceID, userID uuid.UUID) {
 	m.Called(workspaceID, userID)
 }
 
+func (m *MockHub) BroadcastToUser(userID uuid.UUID, eventType string, data any) {
+	m.Called(userID, eventType, data)
+}
+
 // MockEmailService mocks the EmailService
 type MockEmailService struct {
 	mock.Mock

@@ -80,6 +80,7 @@ type HubInterface interface {
 	BroadcastWorkspaceUpdate(workspaceID, updatedBy uuid.UUID, name string)
 	BroadcastMemberJoined(workspaceID, userID uuid.UUID, userName string, avatarURL *string)
 	BroadcastMemberLeft(workspaceID, userID uuid.UUID)
+	BroadcastToUser(userID uuid.UUID, eventType string, data any)
 }
 
 // EmailServiceInterface defines the methods used by handlers from EmailService

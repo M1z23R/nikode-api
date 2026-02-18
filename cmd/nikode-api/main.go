@@ -51,7 +51,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, userService, emailService, h, cfg.BaseURL)
 	collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, h)
-	inviteHandler := handlers.NewInviteHandler(workspaceService)
+	inviteHandler := handlers.NewInviteHandler(workspaceService, h)
 	pingPongHandler := handlers.NewWebSocketHandler()
 	syncHandler := handlers.NewSyncHandler(h, workspaceService, userService, jwtService)
 
