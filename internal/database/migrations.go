@@ -71,12 +71,14 @@ var migrations = []string{
 	`CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON workspace_members(user_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_workspace_invites_workspace_id ON workspace_invites(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_workspace_invites_invitee_id ON workspace_invites(invitee_id)`,
-	`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_collections_workspace_id ON collections(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
 
 	// Migration: Add owner_id column if it doesn't exist (for existing databases)
 	`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE CASCADE`,
+
+	// Migration: Index owner_id (must be after the ADD COLUMN for existing databases)
+	`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id)`,
 
 	// Migration: Populate owner_id from user_id for personal workspaces
 	`UPDATE workspaces SET owner_id = user_id WHERE owner_id IS NULL AND user_id IS NOT NULL`,
