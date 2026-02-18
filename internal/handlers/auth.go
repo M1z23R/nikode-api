@@ -169,7 +169,7 @@ func (h *AuthHandler) Callback(c *drift.Context) {
 		url.QueryEscape(authCode),
 	)
 
-	h.renderCallbackPage(c, redirectURL, authCode, "")
+	c.Redirect(302, redirectURL)
 }
 
 func (h *AuthHandler) ExchangeCode(c *drift.Context) {
@@ -317,80 +317,5 @@ func (h *AuthHandler) redirectWithError(c *drift.Context, errMsg string) {
 		h.cfg.FrontendCallbackURL,
 		url.QueryEscape(errMsg),
 	)
-	h.renderCallbackPage(c, redirectURL, errMsg, "error")
-}
-
-func (h *AuthHandler) renderCallbackPage(c *drift.Context, deepLink, code, status string) {
-	title := "Sign-in Successful"
-	heading := "You're signed in!"
-	subtitle := "Redirecting you to Nikode..."
-	headingColor := "#111827"
-	statusCode := 200
-	codeSection := ""
-
-	if status == "error" {
-		title = "Sign-in Failed"
-		heading = "Sign-in failed"
-		subtitle = code
-		headingColor = "#991b1b"
-		statusCode = 400
-	} else {
-		codeSection = fmt.Sprintf(`
-        <div class="divider"></div>
-        <p class="fallback-hint">Didn't redirect automatically? Copy the code below and paste it in the Nikode app.</p>
-        <div class="code-container">
-            <code id="auth-code">%s</code>
-            <button onclick="copyCode()" class="copy-btn" id="copy-btn">Copy</button>
-        </div>`, code)
-	}
-
-	html := fmt.Sprintf(`<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>%s</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }
-        .container { max-width: 400px; margin: 0 auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 40px 32px; text-align: center; }
-        .icon { margin-bottom: 24px; }
-        .icon svg { width: 48px; height: 48px; }
-        h1 { font-size: 20px; font-weight: 600; color: %s; margin: 0 0 8px 0; }
-        .subtitle { color: #6b7280; font-size: 14px; margin: 0 0 4px 0; }
-        .close-hint { color: #9ca3af; font-size: 13px; margin: 0; }
-        .divider { border-top: 1px solid #e5e7eb; margin: 24px 0; }
-        .fallback-hint { color: #6b7280; font-size: 13px; margin: 0 0 12px 0; }
-        .code-container { display: flex; align-items: center; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; gap: 8px; }
-        .code-container code { flex: 1; font-family: monospace; font-size: 13px; color: #111827; word-break: break-all; text-align: left; }
-        .copy-btn { background: #374151; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
-        .copy-btn:hover { background: #1f2937; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="icon">
-            <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="0" width="512" height="512" rx="80" ry="80" fill="#374151"/>
-                <text x="256" y="380" font-family="Arial, Helvetica, sans-serif" font-size="360" font-weight="bold" fill="#f3f4f6" text-anchor="middle">N</text>
-            </svg>
-        </div>
-        <h1>%s</h1>
-        <p class="subtitle">%s</p>
-        <p class="close-hint">You can close this window.</p>%s
-    </div>
-    <script>
-        window.location.href = %q;
-        function copyCode() {
-            var code = document.getElementById('auth-code').textContent;
-            navigator.clipboard.writeText(code).then(function() {
-                document.getElementById('copy-btn').textContent = 'Copied!';
-                setTimeout(function() { document.getElementById('copy-btn').textContent = 'Copy'; }, 2000);
-            });
-        }
-    </script>
-</body>
-</html>`, title, headingColor, heading, subtitle, codeSection, deepLink)
-
-	_ = c.HTML(statusCode, html)
+	c.Redirect(302, redirectURL)
 }
