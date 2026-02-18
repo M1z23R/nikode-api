@@ -81,11 +81,11 @@ func TestEmailService_Send_NotConfigured(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestEmailService_SendTeamInvite_NotConfigured(t *testing.T) {
+func TestEmailService_SendWorkspaceInvite_NotConfigured(t *testing.T) {
 	cfg := config.SMTPConfig{}
 	svc := NewEmailService(cfg)
 
-	err := svc.SendTeamInvite("to@example.com", "Test Team", "John Doe", "http://example.com/invite/123")
+	err := svc.SendWorkspaceInvite("to@example.com", "Test Workspace", "John Doe", "http://example.com/invite/123")
 
 	assert.NoError(t, err)
 }

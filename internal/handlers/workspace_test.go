@@ -22,28 +22,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupWorkspaceTest(t *testing.T) (*testutil.MockWorkspaceService, *testutil.MockTeamService, *WorkspaceHandler, *services.JWTService) {
+func setupWorkspaceTest(t *testing.T) (*testutil.MockWorkspaceService, *testutil.MockUserService, *testutil.MockEmailService, *WorkspaceHandler, *services.JWTService) {
 	t.Helper()
 	mockWorkspaceService := new(testutil.MockWorkspaceService)
-	mockTeamService := new(testutil.MockTeamService)
-	handler := NewWorkspaceHandler(mockWorkspaceService, mockTeamService)
+	mockUserService := new(testutil.MockUserService)
+	mockEmailService := new(testutil.MockEmailService)
+	handler := NewWorkspaceHandler(mockWorkspaceService, mockUserService, mockEmailService, "http://localhost")
 	jwtSvc := services.NewJWTService("test-secret-key", 15*time.Minute, 24*time.Hour)
-	return mockWorkspaceService, mockTeamService, handler, jwtSvc
+	return mockWorkspaceService, mockUserService, mockEmailService, handler, jwtSvc
 }
 
-func TestWorkspaceHandler_Create_Personal_Success(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+func TestWorkspaceHandler_Create_Success(t *testing.T) {
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
 	workspace := &models.Workspace{
-		ID:     uuid.New(),
-		Name:   "My Workspace",
-		UserID: &userID,
-		TeamID: nil,
+		ID:      uuid.New(),
+		Name:    "My Workspace",
+		OwnerID: userID,
 	}
 
-	mockWorkspaceService.On("Create", mock.Anything, "My Workspace", userID, (*uuid.UUID)(nil)).Return(workspace, nil)
+	mockWorkspaceService.On("Create", mock.Anything, "My Workspace", userID).Return(workspace, nil)
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -69,90 +69,13 @@ func TestWorkspaceHandler_Create_Personal_Success(t *testing.T) {
 
 	assert.Equal(t, workspace.ID, response.ID)
 	assert.Equal(t, "My Workspace", response.Name)
-	assert.Equal(t, "personal", response.Type)
-	assert.Nil(t, response.TeamID)
+	assert.Equal(t, "owner", response.Role)
 
 	mockWorkspaceService.AssertExpectations(t)
-}
-
-func TestWorkspaceHandler_Create_Team_Success(t *testing.T) {
-	mockWorkspaceService, mockTeamService, handler, jwtSvc := setupWorkspaceTest(t)
-
-	userID := uuid.New()
-	email := "test@example.com"
-	teamID := uuid.New()
-	workspace := &models.Workspace{
-		ID:     uuid.New(),
-		Name:   "Team Workspace",
-		UserID: &userID,
-		TeamID: &teamID,
-	}
-
-	mockTeamService.On("IsMember", mock.Anything, teamID, userID).Return(true, nil)
-	mockWorkspaceService.On("Create", mock.Anything, "Team Workspace", userID, &teamID).Return(workspace, nil)
-
-	app := drift.New()
-	app.Use(driftmw.BodyParser())
-	app.Use(middleware.Auth(jwtSvc))
-	app.Post("/workspaces", handler.Create)
-
-	body := dto.CreateWorkspaceRequest{Name: "Team Workspace", TeamID: &teamID}
-	jsonBody, _ := json.Marshal(body)
-
-	token := generateTestToken(t, jwtSvc, userID, email)
-	req := httptest.NewRequest(http.MethodPost, "/workspaces", bytes.NewReader(jsonBody))
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-	rec := httptest.NewRecorder()
-
-	app.ServeHTTP(rec, req)
-
-	assert.Equal(t, http.StatusCreated, rec.Code)
-
-	var response dto.WorkspaceResponse
-	err := json.Unmarshal(rec.Body.Bytes(), &response)
-	require.NoError(t, err)
-
-	assert.Equal(t, "team", response.Type)
-	assert.Equal(t, &teamID, response.TeamID)
-
-	mockWorkspaceService.AssertExpectations(t)
-	mockTeamService.AssertExpectations(t)
-}
-
-func TestWorkspaceHandler_Create_Team_NotMember(t *testing.T) {
-	_, mockTeamService, handler, jwtSvc := setupWorkspaceTest(t)
-
-	userID := uuid.New()
-	email := "test@example.com"
-	teamID := uuid.New()
-
-	mockTeamService.On("IsMember", mock.Anything, teamID, userID).Return(false, nil)
-
-	app := drift.New()
-	app.Use(driftmw.BodyParser())
-	app.Use(middleware.Auth(jwtSvc))
-	app.Post("/workspaces", handler.Create)
-
-	body := dto.CreateWorkspaceRequest{Name: "Team Workspace", TeamID: &teamID}
-	jsonBody, _ := json.Marshal(body)
-
-	token := generateTestToken(t, jwtSvc, userID, email)
-	req := httptest.NewRequest(http.MethodPost, "/workspaces", bytes.NewReader(jsonBody))
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-	rec := httptest.NewRecorder()
-
-	app.ServeHTTP(rec, req)
-
-	assert.Equal(t, http.StatusForbidden, rec.Code)
-	assert.Contains(t, rec.Body.String(), "not a member of this team")
-
-	mockTeamService.AssertExpectations(t)
 }
 
 func TestWorkspaceHandler_Create_EmptyName(t *testing.T) {
-	_, _, handler, jwtSvc := setupWorkspaceTest(t)
+	_, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -178,17 +101,17 @@ func TestWorkspaceHandler_Create_EmptyName(t *testing.T) {
 }
 
 func TestWorkspaceHandler_List_Success(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
-	teamID := uuid.New()
 	workspaces := []models.Workspace{
-		{ID: uuid.New(), Name: "Personal Workspace", UserID: &userID, TeamID: nil},
-		{ID: uuid.New(), Name: "Team Workspace", UserID: &userID, TeamID: &teamID},
+		{ID: uuid.New(), Name: "Workspace 1", OwnerID: userID},
+		{ID: uuid.New(), Name: "Workspace 2", OwnerID: uuid.New()},
 	}
+	roles := []string{"owner", "member"}
 
-	mockWorkspaceService.On("GetUserWorkspaces", mock.Anything, userID).Return(workspaces, nil)
+	mockWorkspaceService.On("GetUserWorkspaces", mock.Anything, userID).Return(workspaces, roles, nil)
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -209,23 +132,22 @@ func TestWorkspaceHandler_List_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, response, 2)
-	assert.Equal(t, "personal", response[0].Type)
-	assert.Equal(t, "team", response[1].Type)
+	assert.Equal(t, "owner", response[0].Role)
+	assert.Equal(t, "member", response[1].Role)
 
 	mockWorkspaceService.AssertExpectations(t)
 }
 
 func TestWorkspaceHandler_Get_Success(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
 	workspaceID := uuid.New()
 	workspace := &models.Workspace{
-		ID:     workspaceID,
-		Name:   "My Workspace",
-		UserID: &userID,
-		TeamID: nil,
+		ID:      workspaceID,
+		Name:    "My Workspace",
+		OwnerID: userID,
 	}
 
 	mockWorkspaceService.On("CanAccess", mock.Anything, workspaceID, userID).Return(true, nil)
@@ -256,7 +178,7 @@ func TestWorkspaceHandler_Get_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Get_NotFound(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -282,39 +204,16 @@ func TestWorkspaceHandler_Get_NotFound(t *testing.T) {
 	mockWorkspaceService.AssertExpectations(t)
 }
 
-func TestWorkspaceHandler_Get_InvalidID(t *testing.T) {
-	_, _, handler, jwtSvc := setupWorkspaceTest(t)
-
-	userID := uuid.New()
-	email := "test@example.com"
-
-	app := drift.New()
-	app.Use(driftmw.BodyParser())
-	app.Use(middleware.Auth(jwtSvc))
-	app.Get("/workspaces/:workspaceId", handler.Get)
-
-	token := generateTestToken(t, jwtSvc, userID, email)
-	req := httptest.NewRequest(http.MethodGet, "/workspaces/invalid-uuid", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	rec := httptest.NewRecorder()
-
-	app.ServeHTTP(rec, req)
-
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
-	assert.Contains(t, rec.Body.String(), "invalid workspace id")
-}
-
 func TestWorkspaceHandler_Update_Success(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
 	workspaceID := uuid.New()
 	updatedWorkspace := &models.Workspace{
-		ID:     workspaceID,
-		Name:   "Updated Name",
-		UserID: &userID,
-		TeamID: nil,
+		ID:      workspaceID,
+		Name:    "Updated Name",
+		OwnerID: userID,
 	}
 
 	mockWorkspaceService.On("CanModify", mock.Anything, workspaceID, userID).Return(true, nil)
@@ -348,7 +247,7 @@ func TestWorkspaceHandler_Update_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Update_Forbidden(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -379,7 +278,7 @@ func TestWorkspaceHandler_Update_Forbidden(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_Success(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -407,7 +306,7 @@ func TestWorkspaceHandler_Delete_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_Forbidden(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -434,7 +333,7 @@ func TestWorkspaceHandler_Delete_Forbidden(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_ServiceError(t *testing.T) {
-	mockWorkspaceService, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -462,7 +361,7 @@ func TestWorkspaceHandler_Delete_ServiceError(t *testing.T) {
 }
 
 func TestWorkspaceHandler_NotAuthenticated(t *testing.T) {
-	_, _, handler, jwtSvc := setupWorkspaceTest(t)
+	_, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())

@@ -33,18 +33,18 @@ func (s *EmailService) Send(to, subject, body string) error {
 	return smtp.SendMail(addr, auth, s.cfg.From, []string{to}, []byte(msg))
 }
 
-func (s *EmailService) SendTeamInvite(to, teamName, inviterName, inviteURL string) error {
-	subject := fmt.Sprintf("You've been invited to join %s", teamName)
+func (s *EmailService) SendWorkspaceInvite(to, workspaceName, inviterName, inviteURL string) error {
+	subject := fmt.Sprintf("You've been invited to join %s", workspaceName)
 	body := fmt.Sprintf(`
 		<html>
 		<body>
-			<h2>Team Invitation</h2>
+			<h2>Workspace Invitation</h2>
 			<p>Hi,</p>
-			<p><strong>%s</strong> has invited you to join the team <strong>%s</strong>.</p>
+			<p><strong>%s</strong> has invited you to join the workspace <strong>%s</strong>.</p>
 			<p><a href="%s">Click here to view and respond to this invitation</a></p>
 		</body>
 		</html>
-	`, inviterName, teamName, inviteURL)
+	`, inviterName, workspaceName, inviteURL)
 
 	return s.Send(to, subject, body)
 }

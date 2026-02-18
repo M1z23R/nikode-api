@@ -20,36 +20,28 @@ type UserServiceInterface interface {
 	Update(ctx context.Context, id uuid.UUID, name string) (*models.User, error)
 }
 
-// TeamServiceInterface defines the methods used by handlers from TeamService
-type TeamServiceInterface interface {
-	Create(ctx context.Context, name string, ownerID uuid.UUID) (*models.Team, error)
-	GetByID(ctx context.Context, teamID uuid.UUID) (*models.Team, error)
-	GetUserTeams(ctx context.Context, userID uuid.UUID) ([]models.Team, []string, error)
-	Update(ctx context.Context, teamID uuid.UUID, name string) (*models.Team, error)
-	Delete(ctx context.Context, teamID uuid.UUID) error
-	IsOwner(ctx context.Context, teamID, userID uuid.UUID) (bool, error)
-	IsMember(ctx context.Context, teamID, userID uuid.UUID) (bool, error)
-	GetMembers(ctx context.Context, teamID uuid.UUID) ([]models.TeamMember, error)
-	AddMember(ctx context.Context, teamID, userID uuid.UUID) error
-	RemoveMember(ctx context.Context, teamID, userID uuid.UUID) error
-	CreateInvite(ctx context.Context, teamID, inviterID, inviteeID uuid.UUID) (*models.TeamInvite, error)
-	GetInviteByID(ctx context.Context, inviteID uuid.UUID) (*models.TeamInvite, error)
-	GetUserPendingInvites(ctx context.Context, userID uuid.UUID) ([]models.TeamInvite, error)
-	GetTeamPendingInvites(ctx context.Context, teamID uuid.UUID) ([]models.TeamInvite, error)
-	AcceptInvite(ctx context.Context, inviteID, userID uuid.UUID) error
-	DeclineInvite(ctx context.Context, inviteID, userID uuid.UUID) error
-	CancelInvite(ctx context.Context, inviteID, teamID uuid.UUID) error
-}
-
 // WorkspaceServiceInterface defines the methods used by handlers from WorkspaceService
 type WorkspaceServiceInterface interface {
-	Create(ctx context.Context, name string, userID uuid.UUID, teamID *uuid.UUID) (*models.Workspace, error)
+	Create(ctx context.Context, name string, ownerID uuid.UUID) (*models.Workspace, error)
 	GetByID(ctx context.Context, workspaceID uuid.UUID) (*models.Workspace, error)
-	GetUserWorkspaces(ctx context.Context, userID uuid.UUID) ([]models.Workspace, error)
+	GetUserWorkspaces(ctx context.Context, userID uuid.UUID) ([]models.Workspace, []string, error)
 	Update(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Workspace, error)
 	Delete(ctx context.Context, workspaceID uuid.UUID) error
+	IsOwner(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error)
+	IsMember(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error)
 	CanAccess(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error)
 	CanModify(ctx context.Context, workspaceID, userID uuid.UUID) (bool, error)
+	GetMembers(ctx context.Context, workspaceID uuid.UUID) ([]models.WorkspaceMember, error)
+	AddMember(ctx context.Context, workspaceID, userID uuid.UUID) error
+	RemoveMember(ctx context.Context, workspaceID, userID uuid.UUID) error
+	CreateInvite(ctx context.Context, workspaceID, inviterID, inviteeID uuid.UUID) (*models.WorkspaceInvite, error)
+	GetInviteByID(ctx context.Context, inviteID uuid.UUID) (*models.WorkspaceInvite, error)
+	GetInviteWithDetails(ctx context.Context, inviteID uuid.UUID) (*models.WorkspaceInvite, error)
+	GetUserPendingInvites(ctx context.Context, userID uuid.UUID) ([]models.WorkspaceInvite, error)
+	GetWorkspacePendingInvites(ctx context.Context, workspaceID uuid.UUID) ([]models.WorkspaceInvite, error)
+	AcceptInvite(ctx context.Context, inviteID, userID uuid.UUID) error
+	DeclineInvite(ctx context.Context, inviteID, userID uuid.UUID) error
+	CancelInvite(ctx context.Context, inviteID, workspaceID uuid.UUID) error
 }
 
 // CollectionServiceInterface defines the methods used by handlers from CollectionService
@@ -87,5 +79,5 @@ type SSEHubInterface interface {
 
 // EmailServiceInterface defines the methods used by handlers from EmailService
 type EmailServiceInterface interface {
-	SendTeamInvite(to, teamName, inviterName, inviteURL string) error
+	SendWorkspaceInvite(to, workspaceName, inviterName, inviteURL string) error
 }

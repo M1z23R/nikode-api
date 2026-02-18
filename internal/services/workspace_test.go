@@ -13,78 +13,56 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupWorkspaceService(t *testing.T) (*WorkspaceService, *TeamService, pgxmock.PgxPoolIface) {
+func setupWorkspaceService(t *testing.T) (*WorkspaceService, pgxmock.PgxPoolIface) {
 	t.Helper()
 	mock, err := pgxmock.NewPool()
 	require.NoError(t, err)
 	t.Cleanup(func() { mock.Close() })
 
 	db := &database.DB{Pool: mock}
-	teamSvc := NewTeamService(db)
-	return NewWorkspaceService(db, teamSvc), teamSvc, mock
+	return NewWorkspaceService(db), mock
 }
 
-func TestWorkspaceService_Create_Personal(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+func TestWorkspaceService_Create(t *testing.T) {
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
-	userID := uuid.New()
+	ownerID := uuid.New()
 	workspaceID := uuid.New()
 	name := "My Workspace"
 	now := time.Now()
 
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, name, &userID, nil, now, now)
+	mock.ExpectBegin()
 
-	mock.ExpectQuery(`INSERT INTO workspaces \(name, user_id\)`).
-		WithArgs(name, userID).
+	rows := pgxmock.NewRows([]string{"id", "name", "owner_id", "created_at", "updated_at"}).
+		AddRow(workspaceID, name, ownerID, now, now)
+	mock.ExpectQuery(`INSERT INTO workspaces \(name, owner_id\)`).
+		WithArgs(name, ownerID).
 		WillReturnRows(rows)
 
-	ws, err := svc.Create(ctx, name, userID, nil)
+	mock.ExpectExec(`INSERT INTO workspace_members`).
+		WithArgs(workspaceID, ownerID, "owner").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+
+	mock.ExpectCommit()
+
+	ws, err := svc.Create(ctx, name, ownerID)
 
 	require.NoError(t, err)
 	assert.Equal(t, workspaceID, ws.ID)
 	assert.Equal(t, name, ws.Name)
-	assert.NotNil(t, ws.UserID)
-	assert.Equal(t, userID, *ws.UserID)
-	assert.Nil(t, ws.TeamID)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_Create_Team(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	userID := uuid.New()
-	teamID := uuid.New()
-	workspaceID := uuid.New()
-	name := "Team Workspace"
-	now := time.Now()
-
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, name, nil, &teamID, now, now)
-
-	mock.ExpectQuery(`INSERT INTO workspaces \(name, team_id\)`).
-		WithArgs(name, &teamID).
-		WillReturnRows(rows)
-
-	ws, err := svc.Create(ctx, name, userID, &teamID)
-
-	require.NoError(t, err)
-	assert.Equal(t, workspaceID, ws.ID)
-	assert.Nil(t, ws.UserID)
-	assert.NotNil(t, ws.TeamID)
-	assert.Equal(t, teamID, *ws.TeamID)
+	assert.Equal(t, ownerID, ws.OwnerID)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestWorkspaceService_GetByID(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
-	userID := uuid.New()
+	ownerID := uuid.New()
 	now := time.Now()
 
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test Workspace", &userID, nil, now, now)
+	rows := pgxmock.NewRows([]string{"id", "name", "owner_id", "created_at", "updated_at"}).
+		AddRow(workspaceID, "Test Workspace", ownerID, now, now)
 
 	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
 		WithArgs(workspaceID).
@@ -98,7 +76,7 @@ func TestWorkspaceService_GetByID(t *testing.T) {
 }
 
 func TestWorkspaceService_GetByID_NotFound(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
 
@@ -113,39 +91,41 @@ func TestWorkspaceService_GetByID_NotFound(t *testing.T) {
 }
 
 func TestWorkspaceService_GetUserWorkspaces(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	userID := uuid.New()
 	ws1ID := uuid.New()
 	ws2ID := uuid.New()
-	teamID := uuid.New()
 	now := time.Now()
 
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(ws1ID, "Personal", &userID, nil, now, now).
-		AddRow(ws2ID, "Team", nil, &teamID, now, now)
+	rows := pgxmock.NewRows([]string{"id", "name", "owner_id", "created_at", "updated_at", "role"}).
+		AddRow(ws1ID, "Workspace 1", userID, now, now, "owner").
+		AddRow(ws2ID, "Workspace 2", uuid.New(), now, now, "member")
 
-	mock.ExpectQuery(`SELECT DISTINCT .+ FROM workspaces w LEFT JOIN team_members`).
+	mock.ExpectQuery(`SELECT .+ FROM workspaces w JOIN workspace_members`).
 		WithArgs(userID).
 		WillReturnRows(rows)
 
-	workspaces, err := svc.GetUserWorkspaces(ctx, userID)
+	workspaces, roles, err := svc.GetUserWorkspaces(ctx, userID)
 
 	require.NoError(t, err)
 	assert.Len(t, workspaces, 2)
+	assert.Len(t, roles, 2)
+	assert.Equal(t, "owner", roles[0])
+	assert.Equal(t, "member", roles[1])
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestWorkspaceService_Update(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
-	userID := uuid.New()
+	ownerID := uuid.New()
 	newName := "Updated Workspace"
 	now := time.Now()
 
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, newName, &userID, nil, now, now)
+	rows := pgxmock.NewRows([]string{"id", "name", "owner_id", "created_at", "updated_at"}).
+		AddRow(workspaceID, newName, ownerID, now, now)
 
 	mock.ExpectQuery(`UPDATE workspaces SET name`).
 		WithArgs(newName, workspaceID).
@@ -159,7 +139,7 @@ func TestWorkspaceService_Update(t *testing.T) {
 }
 
 func TestWorkspaceService_Delete(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
 
@@ -173,179 +153,38 @@ func TestWorkspaceService_Delete(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestWorkspaceService_CanAccess_PersonalOwner(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+func TestWorkspaceService_IsOwner(t *testing.T) {
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
 	userID := uuid.New()
-	now := time.Now()
 
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", &userID, nil, now, now)
-
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
+	rows := pgxmock.NewRows([]string{"owner_id"}).AddRow(userID)
+	mock.ExpectQuery(`SELECT owner_id FROM workspaces WHERE id`).
 		WithArgs(workspaceID).
 		WillReturnRows(rows)
 
-	canAccess, err := svc.CanAccess(ctx, workspaceID, userID)
+	isOwner, err := svc.IsOwner(ctx, workspaceID, userID)
 
 	require.NoError(t, err)
-	assert.True(t, canAccess)
+	assert.True(t, isOwner)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestWorkspaceService_CanAccess_PersonalNotOwner(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
+func TestWorkspaceService_IsMember(t *testing.T) {
+	svc, mock := setupWorkspaceService(t)
 	ctx := context.Background()
 	workspaceID := uuid.New()
-	ownerID := uuid.New()
-	otherUserID := uuid.New()
-	now := time.Now()
-
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", &ownerID, nil, now, now)
-
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
-		WillReturnRows(rows)
-
-	canAccess, err := svc.CanAccess(ctx, workspaceID, otherUserID)
-
-	require.NoError(t, err)
-	assert.False(t, canAccess)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_CanAccess_TeamMember(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	workspaceID := uuid.New()
-	teamID := uuid.New()
 	userID := uuid.New()
-	now := time.Now()
 
-	// GetByID
-	wsRows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", nil, &teamID, now, now)
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
-		WillReturnRows(wsRows)
-
-	// IsMember check
-	memberRows := pgxmock.NewRows([]string{"exists"}).AddRow(true)
+	rows := pgxmock.NewRows([]string{"exists"}).AddRow(true)
 	mock.ExpectQuery(`SELECT EXISTS`).
-		WithArgs(teamID, userID).
-		WillReturnRows(memberRows)
-
-	canAccess, err := svc.CanAccess(ctx, workspaceID, userID)
-
-	require.NoError(t, err)
-	assert.True(t, canAccess)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_CanAccess_TeamNonMember(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	workspaceID := uuid.New()
-	teamID := uuid.New()
-	userID := uuid.New()
-	now := time.Now()
-
-	// GetByID
-	wsRows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", nil, &teamID, now, now)
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
-		WillReturnRows(wsRows)
-
-	// IsMember check
-	memberRows := pgxmock.NewRows([]string{"exists"}).AddRow(false)
-	mock.ExpectQuery(`SELECT EXISTS`).
-		WithArgs(teamID, userID).
-		WillReturnRows(memberRows)
-
-	canAccess, err := svc.CanAccess(ctx, workspaceID, userID)
-
-	require.NoError(t, err)
-	assert.False(t, canAccess)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_CanModify_PersonalOwner(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	workspaceID := uuid.New()
-	userID := uuid.New()
-	now := time.Now()
-
-	rows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", &userID, nil, now, now)
-
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
+		WithArgs(workspaceID, userID).
 		WillReturnRows(rows)
 
-	canModify, err := svc.CanModify(ctx, workspaceID, userID)
+	isMember, err := svc.IsMember(ctx, workspaceID, userID)
 
 	require.NoError(t, err)
-	assert.True(t, canModify)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_CanModify_TeamOwner(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	workspaceID := uuid.New()
-	teamID := uuid.New()
-	userID := uuid.New()
-	now := time.Now()
-
-	// GetByID
-	wsRows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", nil, &teamID, now, now)
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
-		WillReturnRows(wsRows)
-
-	// IsOwner check
-	ownerRows := pgxmock.NewRows([]string{"owner_id"}).AddRow(userID)
-	mock.ExpectQuery(`SELECT owner_id FROM teams WHERE id`).
-		WithArgs(teamID).
-		WillReturnRows(ownerRows)
-
-	canModify, err := svc.CanModify(ctx, workspaceID, userID)
-
-	require.NoError(t, err)
-	assert.True(t, canModify)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestWorkspaceService_CanModify_TeamMemberNotOwner(t *testing.T) {
-	svc, _, mock := setupWorkspaceService(t)
-	ctx := context.Background()
-	workspaceID := uuid.New()
-	teamID := uuid.New()
-	userID := uuid.New()
-	teamOwnerID := uuid.New()
-	now := time.Now()
-
-	// GetByID
-	wsRows := pgxmock.NewRows([]string{"id", "name", "user_id", "team_id", "created_at", "updated_at"}).
-		AddRow(workspaceID, "Test", nil, &teamID, now, now)
-	mock.ExpectQuery(`SELECT .+ FROM workspaces WHERE id`).
-		WithArgs(workspaceID).
-		WillReturnRows(wsRows)
-
-	// IsOwner check - user is not the team owner
-	ownerRows := pgxmock.NewRows([]string{"owner_id"}).AddRow(teamOwnerID)
-	mock.ExpectQuery(`SELECT owner_id FROM teams WHERE id`).
-		WithArgs(teamID).
-		WillReturnRows(ownerRows)
-
-	canModify, err := svc.CanModify(ctx, workspaceID, userID)
-
-	require.NoError(t, err)
-	assert.False(t, canModify)
+	assert.True(t, isMember)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

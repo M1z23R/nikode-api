@@ -20,7 +20,7 @@ var migrations = []string{
 		UNIQUE(provider, provider_id)
 	)`,
 
-	`CREATE TABLE IF NOT EXISTS teams (
+	`CREATE TABLE IF NOT EXISTS workspaces (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 		name VARCHAR(255) NOT NULL,
 		owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -28,26 +28,24 @@ var migrations = []string{
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 	)`,
 
-	`CREATE TABLE IF NOT EXISTS team_members (
+	`CREATE TABLE IF NOT EXISTS workspace_members (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-		team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
 		user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		role VARCHAR(50) NOT NULL DEFAULT 'member',
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-		UNIQUE(team_id, user_id)
+		UNIQUE(workspace_id, user_id)
 	)`,
 
-	`CREATE TABLE IF NOT EXISTS workspaces (
+	`CREATE TABLE IF NOT EXISTS workspace_invites (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-		name VARCHAR(255) NOT NULL,
-		user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-		team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+		inviter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		invitee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		status VARCHAR(20) NOT NULL DEFAULT 'pending',
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-		CONSTRAINT workspace_owner_check CHECK (
-			(user_id IS NOT NULL AND team_id IS NULL) OR
-			(user_id IS NULL AND team_id IS NOT NULL)
-		)
+		UNIQUE(workspace_id, invitee_id)
 	)`,
 
 	`CREATE TABLE IF NOT EXISTS collections (
@@ -69,25 +67,70 @@ var migrations = []string{
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 	)`,
 
-	`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id)`,
-	`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id)`,
-	`CREATE INDEX IF NOT EXISTS idx_workspaces_user_id ON workspaces(user_id)`,
-	`CREATE INDEX IF NOT EXISTS idx_workspaces_team_id ON workspaces(team_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_members_workspace_id ON workspace_members(workspace_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON workspace_members(user_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_invites_workspace_id ON workspace_invites(workspace_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_invites_invitee_id ON workspace_invites(invitee_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_collections_workspace_id ON collections(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
 
-	`CREATE TABLE IF NOT EXISTS team_invites (
-		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-		team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-		inviter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		invitee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-		status VARCHAR(20) NOT NULL DEFAULT 'pending',
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-		UNIQUE(team_id, invitee_id)
-	)`,
-	`CREATE INDEX IF NOT EXISTS idx_team_invites_invitee_id ON team_invites(invitee_id)`,
-	`CREATE INDEX IF NOT EXISTS idx_team_invites_team_id ON team_invites(team_id)`,
+	// Migration: Add owner_id column if it doesn't exist (for existing databases)
+	`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE CASCADE`,
+
+	// Migration: Populate owner_id from user_id for personal workspaces
+	`UPDATE workspaces SET owner_id = user_id WHERE owner_id IS NULL AND user_id IS NOT NULL`,
+
+	// Migration: Populate owner_id from team owner for team workspaces
+	`UPDATE workspaces w SET owner_id = t.owner_id
+	 FROM teams t
+	 WHERE w.owner_id IS NULL AND w.team_id IS NOT NULL AND w.team_id = t.id`,
+
+	// Migration: Create workspace_members for personal workspaces (owner as member)
+	`INSERT INTO workspace_members (workspace_id, user_id, role)
+	 SELECT w.id, w.user_id, 'owner'
+	 FROM workspaces w
+	 WHERE w.user_id IS NOT NULL
+	 AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = w.user_id)`,
+
+	// Migration: Create workspace_members for team workspaces from team_members
+	`INSERT INTO workspace_members (workspace_id, user_id, role)
+	 SELECT w.id, tm.user_id, tm.role
+	 FROM workspaces w
+	 JOIN team_members tm ON w.team_id = tm.team_id
+	 WHERE w.team_id IS NOT NULL
+	 AND NOT EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = w.id AND wm.user_id = tm.user_id)`,
+
+	// Migration: Drop old columns from workspaces table
+	`ALTER TABLE workspaces DROP COLUMN IF EXISTS user_id`,
+	`ALTER TABLE workspaces DROP COLUMN IF EXISTS team_id`,
+
+	// Migration: Drop old team tables (order matters due to FK constraints)
+	`DROP TABLE IF EXISTS team_invites`,
+	`DROP TABLE IF EXISTS team_members`,
+	`DROP TABLE IF EXISTS teams`,
+
+	// Migration: Drop old indexes
+	`DROP INDEX IF EXISTS idx_workspaces_user_id`,
+	`DROP INDEX IF EXISTS idx_workspaces_team_id`,
+	`DROP INDEX IF EXISTS idx_team_members_team_id`,
+	`DROP INDEX IF EXISTS idx_team_members_user_id`,
+	`DROP INDEX IF EXISTS idx_team_invites_team_id`,
+	`DROP INDEX IF EXISTS idx_team_invites_invitee_id`,
+
+	// Migration: Make owner_id NOT NULL after migration (skip if already not null)
+	`DO $$
+	BEGIN
+		IF EXISTS (
+			SELECT 1 FROM information_schema.columns
+			WHERE table_name = 'workspaces' AND column_name = 'owner_id' AND is_nullable = 'YES'
+		) THEN
+			-- Delete any workspaces with null owner_id (shouldn't exist, but safety)
+			DELETE FROM workspaces WHERE owner_id IS NULL;
+			-- Make the column NOT NULL
+			ALTER TABLE workspaces ALTER COLUMN owner_id SET NOT NULL;
+		END IF;
+	END $$`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {

@@ -88,18 +88,18 @@ func WithAvatar(url string) UserOption {
 	}
 }
 
-// CreateTeam creates a test team with the given owner
-func (f *Fixtures) CreateTeam(t *testing.T, owner *models.User, opts ...TeamOption) *models.Team {
+// CreateWorkspace creates a test workspace with the given owner
+func (f *Fixtures) CreateWorkspace(t *testing.T, owner *models.User, opts ...WorkspaceOption) *models.Workspace {
 	t.Helper()
 	f.counter++
 
-	team := &models.Team{
-		Name:    fmt.Sprintf("Test Team %d", f.counter),
+	ws := &models.Workspace{
+		Name:    fmt.Sprintf("Test Workspace %d", f.counter),
 		OwnerID: owner.ID,
 	}
 
 	for _, opt := range opts {
-		opt(team)
+		opt(ws)
 	}
 
 	ctx := context.Background()
@@ -110,88 +110,24 @@ func (f *Fixtures) CreateTeam(t *testing.T, owner *models.User, opts ...TeamOpti
 	defer func() { _ = tx.Rollback(ctx) }()
 
 	err = tx.QueryRow(ctx, `
-		INSERT INTO teams (name, owner_id)
+		INSERT INTO workspaces (name, owner_id)
 		VALUES ($1, $2)
 		RETURNING id, name, owner_id, created_at, updated_at
-	`, team.Name, team.OwnerID).Scan(&team.ID, &team.Name, &team.OwnerID, &team.CreatedAt, &team.UpdatedAt)
+	`, ws.Name, ws.OwnerID).Scan(&ws.ID, &ws.Name, &ws.OwnerID, &ws.CreatedAt, &ws.UpdatedAt)
 	if err != nil {
-		t.Fatalf("failed to create team: %v", err)
+		t.Fatalf("failed to create workspace: %v", err)
 	}
 
 	_, err = tx.Exec(ctx, `
-		INSERT INTO team_members (team_id, user_id, role)
+		INSERT INTO workspace_members (workspace_id, user_id, role)
 		VALUES ($1, $2, $3)
-	`, team.ID, owner.ID, models.RoleOwner)
+	`, ws.ID, owner.ID, models.RoleOwner)
 	if err != nil {
 		t.Fatalf("failed to add owner as member: %v", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
 		t.Fatalf("failed to commit transaction: %v", err)
-	}
-
-	return team
-}
-
-// TeamOption configures a test team
-type TeamOption func(*models.Team)
-
-// WithTeamName sets the team's name
-func WithTeamName(name string) TeamOption {
-	return func(t *models.Team) {
-		t.Name = name
-	}
-}
-
-// AddTeamMember adds a member to a team
-func (f *Fixtures) AddTeamMember(t *testing.T, team *models.Team, user *models.User) {
-	t.Helper()
-	ctx := context.Background()
-
-	_, err := f.db.Pool.Exec(ctx, `
-		INSERT INTO team_members (team_id, user_id, role)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (team_id, user_id) DO NOTHING
-	`, team.ID, user.ID, models.RoleMember)
-	if err != nil {
-		t.Fatalf("failed to add team member: %v", err)
-	}
-}
-
-// CreateWorkspace creates a test workspace (personal or team)
-func (f *Fixtures) CreateWorkspace(t *testing.T, opts ...WorkspaceOption) *models.Workspace {
-	t.Helper()
-	f.counter++
-
-	ws := &models.Workspace{
-		Name: fmt.Sprintf("Test Workspace %d", f.counter),
-	}
-
-	for _, opt := range opts {
-		opt(ws)
-	}
-
-	ctx := context.Background()
-	var err error
-
-	if ws.TeamID != nil {
-		err = f.db.Pool.QueryRow(ctx, `
-			INSERT INTO workspaces (name, team_id)
-			VALUES ($1, $2)
-			RETURNING id, name, user_id, team_id, created_at, updated_at
-		`, ws.Name, ws.TeamID).Scan(&ws.ID, &ws.Name, &ws.UserID, &ws.TeamID, &ws.CreatedAt, &ws.UpdatedAt)
-	} else if ws.UserID != nil {
-		err = f.db.Pool.QueryRow(ctx, `
-			INSERT INTO workspaces (name, user_id)
-			VALUES ($1, $2)
-			RETURNING id, name, user_id, team_id, created_at, updated_at
-		`, ws.Name, ws.UserID).Scan(&ws.ID, &ws.Name, &ws.UserID, &ws.TeamID, &ws.CreatedAt, &ws.UpdatedAt)
-	} else {
-		t.Fatal("workspace must have either user_id or team_id")
-	}
-
-	if err != nil {
-		t.Fatalf("failed to create workspace: %v", err)
 	}
 
 	return ws
@@ -207,19 +143,18 @@ func WithWorkspaceName(name string) WorkspaceOption {
 	}
 }
 
-// WithUser sets the workspace as personal for the given user
-func WithUser(user *models.User) WorkspaceOption {
-	return func(w *models.Workspace) {
-		w.UserID = &user.ID
-		w.TeamID = nil
-	}
-}
+// AddWorkspaceMember adds a member to a workspace
+func (f *Fixtures) AddWorkspaceMember(t *testing.T, workspace *models.Workspace, user *models.User) {
+	t.Helper()
+	ctx := context.Background()
 
-// WithTeam sets the workspace as belonging to the given team
-func WithTeam(team *models.Team) WorkspaceOption {
-	return func(w *models.Workspace) {
-		w.TeamID = &team.ID
-		w.UserID = nil
+	_, err := f.db.Pool.Exec(ctx, `
+		INSERT INTO workspace_members (workspace_id, user_id, role)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (workspace_id, user_id) DO NOTHING
+	`, workspace.ID, user.ID, models.RoleMember)
+	if err != nil {
+		t.Fatalf("failed to add workspace member: %v", err)
 	}
 }
 

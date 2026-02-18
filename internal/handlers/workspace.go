@@ -2,8 +2,12 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log"
 
 	"github.com/dimitrije/nikode-api/internal/middleware"
+	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/dimitrije/nikode-api/pkg/dto"
 	"github.com/google/uuid"
 	"github.com/m1z23r/drift/pkg/drift"
@@ -11,13 +15,17 @@ import (
 
 type WorkspaceHandler struct {
 	workspaceService WorkspaceServiceInterface
-	teamService      TeamServiceInterface
+	userService      UserServiceInterface
+	emailService     EmailServiceInterface
+	baseURL          string
 }
 
-func NewWorkspaceHandler(workspaceService WorkspaceServiceInterface, teamService TeamServiceInterface) *WorkspaceHandler {
+func NewWorkspaceHandler(workspaceService WorkspaceServiceInterface, userService UserServiceInterface, emailService EmailServiceInterface, baseURL string) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		workspaceService: workspaceService,
-		teamService:      teamService,
+		userService:      userService,
+		emailService:     emailService,
+		baseURL:          baseURL,
 	}
 }
 
@@ -39,33 +47,18 @@ func (h *WorkspaceHandler) Create(c *drift.Context) {
 		return
 	}
 
-	ctx := context.Background()
-
-	if req.TeamID != nil {
-		isMember, err := h.teamService.IsMember(ctx, *req.TeamID, userID)
-		if err != nil || !isMember {
-			c.Forbidden("not a member of this team")
-			return
-		}
-	}
-
-	workspace, err := h.workspaceService.Create(ctx, req.Name, userID, req.TeamID)
+	workspace, err := h.workspaceService.Create(context.Background(), req.Name, userID)
 	if err != nil {
+		log.Printf("failed to create workspace: %v", err)
 		c.InternalServerError("failed to create workspace")
 		return
 	}
 
-	wsType := "personal"
-	if workspace.TeamID != nil {
-		wsType = "team"
-	}
-
 	_ = c.JSON(201, dto.WorkspaceResponse{
-		ID:     workspace.ID,
-		Name:   workspace.Name,
-		UserID: workspace.UserID,
-		TeamID: workspace.TeamID,
-		Type:   wsType,
+		ID:      workspace.ID,
+		Name:    workspace.Name,
+		OwnerID: workspace.OwnerID,
+		Role:    "owner",
 	})
 }
 
@@ -76,7 +69,7 @@ func (h *WorkspaceHandler) List(c *drift.Context) {
 		return
 	}
 
-	workspaces, err := h.workspaceService.GetUserWorkspaces(context.Background(), userID)
+	workspaces, roles, err := h.workspaceService.GetUserWorkspaces(context.Background(), userID)
 	if err != nil {
 		c.InternalServerError("failed to get workspaces")
 		return
@@ -84,16 +77,11 @@ func (h *WorkspaceHandler) List(c *drift.Context) {
 
 	response := make([]dto.WorkspaceResponse, len(workspaces))
 	for i, w := range workspaces {
-		wsType := "personal"
-		if w.TeamID != nil {
-			wsType = "team"
-		}
 		response[i] = dto.WorkspaceResponse{
-			ID:     w.ID,
-			Name:   w.Name,
-			UserID: w.UserID,
-			TeamID: w.TeamID,
-			Type:   wsType,
+			ID:      w.ID,
+			Name:    w.Name,
+			OwnerID: w.OwnerID,
+			Role:    roles[i],
 		}
 	}
 
@@ -127,17 +115,16 @@ func (h *WorkspaceHandler) Get(c *drift.Context) {
 		return
 	}
 
-	wsType := "personal"
-	if workspace.TeamID != nil {
-		wsType = "team"
+	role := "member"
+	if workspace.OwnerID == userID {
+		role = "owner"
 	}
 
 	_ = c.JSON(200, dto.WorkspaceResponse{
-		ID:     workspace.ID,
-		Name:   workspace.Name,
-		UserID: workspace.UserID,
-		TeamID: workspace.TeamID,
-		Type:   wsType,
+		ID:      workspace.ID,
+		Name:    workspace.Name,
+		OwnerID: workspace.OwnerID,
+		Role:    role,
 	})
 }
 
@@ -179,17 +166,11 @@ func (h *WorkspaceHandler) Update(c *drift.Context) {
 		return
 	}
 
-	wsType := "personal"
-	if workspace.TeamID != nil {
-		wsType = "team"
-	}
-
 	_ = c.JSON(200, dto.WorkspaceResponse{
-		ID:     workspace.ID,
-		Name:   workspace.Name,
-		UserID: workspace.UserID,
-		TeamID: workspace.TeamID,
-		Type:   wsType,
+		ID:      workspace.ID,
+		Name:    workspace.Name,
+		OwnerID: workspace.OwnerID,
+		Role:    "owner",
 	})
 }
 
@@ -220,4 +201,360 @@ func (h *WorkspaceHandler) Delete(c *drift.Context) {
 	}
 
 	_ = c.JSON(200, map[string]string{"message": "workspace deleted"})
+}
+
+func (h *WorkspaceHandler) GetMembers(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	isMember, err := h.workspaceService.IsMember(context.Background(), workspaceID, userID)
+	if err != nil || !isMember {
+		c.NotFound("workspace not found")
+		return
+	}
+
+	members, err := h.workspaceService.GetMembers(context.Background(), workspaceID)
+	if err != nil {
+		c.InternalServerError("failed to get members")
+		return
+	}
+
+	response := make([]dto.WorkspaceMemberResponse, len(members))
+	for i, m := range members {
+		response[i] = dto.WorkspaceMemberResponse{
+			ID:     m.ID,
+			UserID: m.UserID,
+			Role:   m.Role,
+			User: dto.UserResponse{
+				ID:        m.User.ID,
+				Email:     m.User.Email,
+				Name:      m.User.Name,
+				AvatarURL: m.User.AvatarURL,
+				Provider:  m.User.Provider,
+			},
+		}
+	}
+
+	_ = c.JSON(200, response)
+}
+
+func (h *WorkspaceHandler) InviteMember(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	isOwner, err := h.workspaceService.IsOwner(context.Background(), workspaceID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can invite members")
+		return
+	}
+
+	var req dto.InviteMemberRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.BadRequest("invalid request body")
+		return
+	}
+
+	if req.Email == "" {
+		c.BadRequest("email is required")
+		return
+	}
+
+	invitee, err := h.userService.GetByEmail(context.Background(), req.Email)
+	if err != nil {
+		c.NotFound("user with this email not found")
+		return
+	}
+
+	invite, err := h.workspaceService.CreateInvite(context.Background(), workspaceID, userID, invitee.ID)
+	if err != nil {
+		if errors.Is(err, services.ErrAlreadyMember) {
+			c.BadRequest("user is already a workspace member")
+			return
+		}
+		c.InternalServerError("failed to create invite")
+		return
+	}
+
+	workspace, _ := h.workspaceService.GetByID(context.Background(), workspaceID)
+	inviter, _ := h.userService.GetByID(context.Background(), userID)
+	if workspace != nil && inviter != nil {
+		inviteURL := fmt.Sprintf("%s/invite/%s", h.baseURL, invite.ID)
+		_ = h.emailService.SendWorkspaceInvite(invitee.Email, workspace.Name, inviter.Name, inviteURL)
+	}
+
+	_ = c.JSON(201, dto.WorkspaceInviteResponse{
+		ID:          invite.ID,
+		WorkspaceID: invite.WorkspaceID,
+		Status:      invite.Status,
+		CreatedAt:   invite.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	})
+}
+
+func (h *WorkspaceHandler) RemoveMember(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	memberID, err := uuid.Parse(c.Param("memberId"))
+	if err != nil {
+		c.BadRequest("invalid member id")
+		return
+	}
+
+	isOwner, err := h.workspaceService.IsOwner(context.Background(), workspaceID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can remove members")
+		return
+	}
+
+	if memberID == userID {
+		c.BadRequest("cannot remove yourself as owner")
+		return
+	}
+
+	if err := h.workspaceService.RemoveMember(context.Background(), workspaceID, memberID); err != nil {
+		if errors.Is(err, services.ErrCannotRemoveOwner) {
+			c.BadRequest("cannot remove workspace owner")
+			return
+		}
+		if errors.Is(err, services.ErrMemberNotFound) {
+			c.NotFound("member not found")
+			return
+		}
+		c.InternalServerError("failed to remove member")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "member removed"})
+}
+
+func (h *WorkspaceHandler) LeaveWorkspace(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	if err := h.workspaceService.RemoveMember(context.Background(), workspaceID, userID); err != nil {
+		if errors.Is(err, services.ErrCannotRemoveOwner) {
+			c.BadRequest("owner cannot leave workspace, transfer ownership or delete it")
+			return
+		}
+		if errors.Is(err, services.ErrMemberNotFound) {
+			c.NotFound("workspace not found or not a member")
+			return
+		}
+		c.InternalServerError("failed to leave workspace")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "left workspace"})
+}
+
+func (h *WorkspaceHandler) GetWorkspaceInvites(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	isOwner, err := h.workspaceService.IsOwner(context.Background(), workspaceID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can view invites")
+		return
+	}
+
+	invites, err := h.workspaceService.GetWorkspacePendingInvites(context.Background(), workspaceID)
+	if err != nil {
+		c.InternalServerError("failed to get invites")
+		return
+	}
+
+	response := make([]dto.WorkspaceInviteResponse, len(invites))
+	for i, inv := range invites {
+		response[i] = dto.WorkspaceInviteResponse{
+			ID:          inv.ID,
+			WorkspaceID: inv.WorkspaceID,
+			Status:      inv.Status,
+			CreatedAt:   inv.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+		if inv.Invitee != nil {
+			response[i].Invitee = &dto.UserResponse{
+				ID:        inv.Invitee.ID,
+				Email:     inv.Invitee.Email,
+				Name:      inv.Invitee.Name,
+				AvatarURL: inv.Invitee.AvatarURL,
+				Provider:  inv.Invitee.Provider,
+			}
+		}
+	}
+
+	_ = c.JSON(200, response)
+}
+
+func (h *WorkspaceHandler) CancelInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	workspaceID, err := uuid.Parse(c.Param("workspaceId"))
+	if err != nil {
+		c.BadRequest("invalid workspace id")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	isOwner, err := h.workspaceService.IsOwner(context.Background(), workspaceID, userID)
+	if err != nil || !isOwner {
+		c.Forbidden("only owner can cancel invites")
+		return
+	}
+
+	if err := h.workspaceService.CancelInvite(context.Background(), inviteID, workspaceID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to cancel invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite cancelled"})
+}
+
+func (h *WorkspaceHandler) GetMyInvites(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	invites, err := h.workspaceService.GetUserPendingInvites(context.Background(), userID)
+	if err != nil {
+		c.InternalServerError("failed to get invites")
+		return
+	}
+
+	response := make([]dto.WorkspaceInviteResponse, len(invites))
+	for i, inv := range invites {
+		response[i] = dto.WorkspaceInviteResponse{
+			ID:          inv.ID,
+			WorkspaceID: inv.WorkspaceID,
+			Status:      inv.Status,
+			CreatedAt:   inv.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+		if inv.Workspace != nil {
+			response[i].Workspace = &dto.WorkspaceResponse{
+				ID:      inv.Workspace.ID,
+				Name:    inv.Workspace.Name,
+				OwnerID: inv.Workspace.OwnerID,
+			}
+		}
+		if inv.Inviter != nil {
+			response[i].Inviter = &dto.UserResponse{
+				ID:        inv.Inviter.ID,
+				Email:     inv.Inviter.Email,
+				Name:      inv.Inviter.Name,
+				AvatarURL: inv.Inviter.AvatarURL,
+				Provider:  inv.Inviter.Provider,
+			}
+		}
+	}
+
+	_ = c.JSON(200, response)
+}
+
+func (h *WorkspaceHandler) AcceptInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	if err := h.workspaceService.AcceptInvite(context.Background(), inviteID, userID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to accept invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite accepted"})
+}
+
+func (h *WorkspaceHandler) DeclineInvite(c *drift.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		c.Unauthorized("not authenticated")
+		return
+	}
+
+	inviteID, err := uuid.Parse(c.Param("inviteId"))
+	if err != nil {
+		c.BadRequest("invalid invite id")
+		return
+	}
+
+	if err := h.workspaceService.DeclineInvite(context.Background(), inviteID, userID); err != nil {
+		if errors.Is(err, services.ErrInviteNotFound) {
+			c.NotFound("invite not found")
+			return
+		}
+		c.InternalServerError("failed to decline invite")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "invite declined"})
 }

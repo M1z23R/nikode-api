@@ -11,14 +11,12 @@ import (
 )
 
 type InviteHandler struct {
-	teamService TeamServiceInterface
-	userService UserServiceInterface
+	workspaceService WorkspaceServiceInterface
 }
 
-func NewInviteHandler(teamService TeamServiceInterface, userService UserServiceInterface) *InviteHandler {
+func NewInviteHandler(workspaceService WorkspaceServiceInterface) *InviteHandler {
 	return &InviteHandler{
-		teamService: teamService,
-		userService: userService,
+		workspaceService: workspaceService,
 	}
 }
 
@@ -29,7 +27,7 @@ func (h *InviteHandler) ViewInvite(c *drift.Context) {
 		return
 	}
 
-	invite, err := h.teamService.GetInviteByID(context.Background(), inviteID)
+	invite, err := h.workspaceService.GetInviteWithDetails(context.Background(), inviteID)
 	if err != nil {
 		h.renderError(c, "Invite not found or has expired")
 		return
@@ -40,19 +38,17 @@ func (h *InviteHandler) ViewInvite(c *drift.Context) {
 		return
 	}
 
-	team, err := h.teamService.GetByID(context.Background(), invite.TeamID)
-	if err != nil {
-		h.renderError(c, "Team not found")
-		return
+	workspaceName := "Unknown Workspace"
+	if invite.Workspace != nil {
+		workspaceName = invite.Workspace.Name
 	}
 
-	inviter, _ := h.userService.GetByID(context.Background(), invite.InviterID)
 	inviterName := "Someone"
-	if inviter != nil {
-		inviterName = inviter.Name
+	if invite.Inviter != nil {
+		inviterName = invite.Inviter.Name
 	}
 
-	h.renderInvitePage(c, invite.ID.String(), team.Name, inviterName)
+	h.renderInvitePage(c, invite.ID.String(), workspaceName, inviterName)
 }
 
 func (h *InviteHandler) AcceptInvite(c *drift.Context) {
@@ -62,13 +58,13 @@ func (h *InviteHandler) AcceptInvite(c *drift.Context) {
 		return
 	}
 
-	invite, err := h.teamService.GetInviteByID(context.Background(), inviteID)
+	invite, err := h.workspaceService.GetInviteByID(context.Background(), inviteID)
 	if err != nil {
 		h.renderError(c, "Invite not found")
 		return
 	}
 
-	if err := h.teamService.AcceptInvite(context.Background(), inviteID, invite.InviteeID); err != nil {
+	if err := h.workspaceService.AcceptInvite(context.Background(), inviteID, invite.InviteeID); err != nil {
 		if errors.Is(err, services.ErrInviteNotFound) {
 			h.renderError(c, "Invite not found or already processed")
 			return
@@ -77,13 +73,13 @@ func (h *InviteHandler) AcceptInvite(c *drift.Context) {
 		return
 	}
 
-	team, _ := h.teamService.GetByID(context.Background(), invite.TeamID)
-	teamName := "the team"
-	if team != nil {
-		teamName = team.Name
+	workspace, _ := h.workspaceService.GetByID(context.Background(), invite.WorkspaceID)
+	workspaceName := "the workspace"
+	if workspace != nil {
+		workspaceName = workspace.Name
 	}
 
-	h.renderMessage(c, fmt.Sprintf("You have joined %s!", teamName))
+	h.renderMessage(c, fmt.Sprintf("You have joined %s!", workspaceName))
 }
 
 func (h *InviteHandler) DeclineInvite(c *drift.Context) {
@@ -93,13 +89,13 @@ func (h *InviteHandler) DeclineInvite(c *drift.Context) {
 		return
 	}
 
-	invite, err := h.teamService.GetInviteByID(context.Background(), inviteID)
+	invite, err := h.workspaceService.GetInviteByID(context.Background(), inviteID)
 	if err != nil {
 		h.renderError(c, "Invite not found")
 		return
 	}
 
-	if err := h.teamService.DeclineInvite(context.Background(), inviteID, invite.InviteeID); err != nil {
+	if err := h.workspaceService.DeclineInvite(context.Background(), inviteID, invite.InviteeID); err != nil {
 		if errors.Is(err, services.ErrInviteNotFound) {
 			h.renderError(c, "Invite not found or already processed")
 			return
@@ -111,13 +107,13 @@ func (h *InviteHandler) DeclineInvite(c *drift.Context) {
 	h.renderMessage(c, "Invite declined")
 }
 
-func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, teamName, inviterName string) {
+func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, workspaceName, inviterName string) {
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Invitation</title>
+    <title>Workspace Invitation</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }
@@ -126,7 +122,7 @@ func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, teamName, i
         .icon svg { width: 48px; height: 48px; }
         h1 { font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 8px 0; }
         .subtitle { color: #6b7280; font-size: 14px; margin: 0 0 24px 0; }
-        .team-name { font-size: 18px; font-weight: 600; color: #111827; padding: 16px; background: #f3f4f6; border-radius: 6px; margin-bottom: 32px; }
+        .workspace-name { font-size: 18px; font-weight: 600; color: #111827; padding: 16px; background: #f3f4f6; border-radius: 6px; margin-bottom: 32px; }
         .buttons { display: flex; gap: 12px; justify-content: center; }
         button { padding: 10px 20px; font-size: 14px; font-weight: 500; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s; }
         .accept { background: #374151; color: #fff; }
@@ -143,9 +139,9 @@ func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, teamName, i
                 <text x="256" y="380" font-family="Arial, Helvetica, sans-serif" font-size="360" font-weight="bold" fill="#f3f4f6" text-anchor="middle">N</text>
             </svg>
         </div>
-        <h1>Team Invitation</h1>
+        <h1>Workspace Invitation</h1>
         <p class="subtitle"><strong>%s</strong> has invited you to join</p>
-        <div class="team-name">%s</div>
+        <div class="workspace-name">%s</div>
         <div class="buttons">
             <form action="/invite/%s/decline" method="POST" style="display:inline;">
                 <button type="submit" class="decline">Decline</button>
@@ -156,7 +152,7 @@ func (h *InviteHandler) renderInvitePage(c *drift.Context, inviteID, teamName, i
         </div>
     </div>
 </body>
-</html>`, inviterName, teamName, inviteID, inviteID)
+</html>`, inviterName, workspaceName, inviteID, inviteID)
 
 	_ = c.HTML(200, html)
 }
@@ -167,7 +163,7 @@ func (h *InviteHandler) renderMessage(c *drift.Context, message string) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Invitation</title>
+    <title>Workspace Invitation</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #374151; margin: 0; padding: 40px 20px; min-height: 100vh; }

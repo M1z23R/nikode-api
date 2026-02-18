@@ -22,7 +22,7 @@ func TestCollectionService_Integration_Create(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	data := json.RawMessage(`{"items": []}`)
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", data, user.ID)
@@ -47,7 +47,7 @@ func TestCollectionService_Integration_GetByWorkspace(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	// Create multiple collections
 	_, err := svc.Create(ctx, ws.ID, "Collection 1", nil, user.ID)
@@ -72,7 +72,7 @@ func TestCollectionService_Integration_Update_OptimisticLocking(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	// Create collection (version 1)
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", nil, user.ID)
@@ -104,7 +104,7 @@ func TestCollectionService_Integration_Update_VersionConflict(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	// Create collection (version 1)
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", nil, user.ID)
@@ -133,7 +133,7 @@ func TestCollectionService_Integration_Update_NotFound(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	// Create and delete collection
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", nil, user.ID)
@@ -160,7 +160,7 @@ func TestCollectionService_Integration_Update_DataOnly(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", json.RawMessage(`{}`), user.ID)
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func TestCollectionService_Integration_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	user := fixtures.CreateUser(t)
-	ws := fixtures.CreateWorkspace(t, testutil.WithUser(user))
+	ws := fixtures.CreateWorkspace(t, user)
 
 	col, err := svc.Create(ctx, ws.ID, "Test Collection", nil, user.ID)
 	require.NoError(t, err)
