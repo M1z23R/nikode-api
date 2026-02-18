@@ -14,13 +14,13 @@ import (
 type CollectionHandler struct {
 	collectionService CollectionServiceInterface
 	workspaceService  WorkspaceServiceInterface
-	hub               SSEHubInterface
+	hub               HubInterface
 }
 
 func NewCollectionHandler(
 	collectionService CollectionServiceInterface,
 	workspaceService WorkspaceServiceInterface,
-	hub SSEHubInterface,
+	hub HubInterface,
 ) *CollectionHandler {
 	return &CollectionHandler{
 		collectionService: collectionService,
@@ -66,6 +66,8 @@ func (h *CollectionHandler) Create(c *drift.Context) {
 		c.InternalServerError("failed to create collection")
 		return
 	}
+
+	h.hub.BroadcastCollectionCreate(collection.WorkspaceID, collection.ID, userID, collection.Name, collection.Version)
 
 	_ = c.JSON(201, dto.CollectionResponse{
 		ID:          collection.ID,
@@ -220,7 +222,7 @@ func (h *CollectionHandler) Update(c *drift.Context) {
 		return
 	}
 
-	h.hub.BroadcastCollectionUpdate(collection.WorkspaceID, collection.ID, userID, collection.Version)
+	h.hub.BroadcastCollectionUpdate(collection.WorkspaceID, collection.ID, userID, collection.Name, collection.Version)
 
 	_ = c.JSON(200, dto.CollectionResponse{
 		ID:          collection.ID,
@@ -263,6 +265,8 @@ func (h *CollectionHandler) Delete(c *drift.Context) {
 		c.InternalServerError("failed to delete collection")
 		return
 	}
+
+	h.hub.BroadcastCollectionDelete(collection.WorkspaceID, collectionID, userID)
 
 	_ = c.JSON(200, map[string]string{"message": "collection deleted"})
 }

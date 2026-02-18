@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/dimitrije/nikode-api/internal/oauth"
 	"github.com/dimitrije/nikode-api/internal/services"
-	"github.com/dimitrije/nikode-api/internal/sse"
 	"github.com/google/uuid"
 )
 
@@ -68,13 +68,18 @@ type JWTServiceInterface interface {
 	RefreshExpiry() time.Duration
 }
 
-// SSEHubInterface defines the methods used by handlers from SSE Hub
-type SSEHubInterface interface {
-	Register(client *sse.Client)
-	Unregister(client *sse.Client)
+// HubInterface defines the methods used by handlers from the Hub
+type HubInterface interface {
+	Register(client *hub.Client)
+	Unregister(client *hub.Client)
 	SubscribeToWorkspace(clientID string, workspaceID uuid.UUID)
 	UnsubscribeFromWorkspace(clientID string, workspaceID uuid.UUID)
-	BroadcastCollectionUpdate(workspaceID, collectionID, userID uuid.UUID, version int)
+	BroadcastCollectionCreate(workspaceID, collectionID, createdBy uuid.UUID, name string, version int)
+	BroadcastCollectionUpdate(workspaceID, collectionID, updatedBy uuid.UUID, name string, version int)
+	BroadcastCollectionDelete(workspaceID, collectionID, deletedBy uuid.UUID)
+	BroadcastWorkspaceUpdate(workspaceID, updatedBy uuid.UUID, name string)
+	BroadcastMemberJoined(workspaceID, userID uuid.UUID, userName string, avatarURL *string)
+	BroadcastMemberLeft(workspaceID, userID uuid.UUID)
 }
 
 // EmailServiceInterface defines the methods used by handlers from EmailService

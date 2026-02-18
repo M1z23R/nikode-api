@@ -22,18 +22,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupCollectionTest(t *testing.T) (*testutil.MockCollectionService, *testutil.MockWorkspaceService, *testutil.MockSSEHub, *CollectionHandler, *services.JWTService) {
+func setupCollectionTest(t *testing.T) (*testutil.MockCollectionService, *testutil.MockWorkspaceService, *testutil.MockHub, *CollectionHandler, *services.JWTService) {
 	t.Helper()
 	mockCollectionService := new(testutil.MockCollectionService)
 	mockWorkspaceService := new(testutil.MockWorkspaceService)
-	mockHub := new(testutil.MockSSEHub)
+	mockHub := new(testutil.MockHub)
 	handler := NewCollectionHandler(mockCollectionService, mockWorkspaceService, mockHub)
 	jwtSvc := services.NewJWTService("test-secret-key", 15*time.Minute, 24*time.Hour)
 	return mockCollectionService, mockWorkspaceService, mockHub, handler, jwtSvc
 }
 
 func TestCollectionHandler_Create_Success(t *testing.T) {
-	mockCollectionService, mockWorkspaceService, _, handler, jwtSvc := setupCollectionTest(t)
+	mockCollectionService, mockWorkspaceService, mockHub, handler, jwtSvc := setupCollectionTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -50,6 +50,7 @@ func TestCollectionHandler_Create_Success(t *testing.T) {
 
 	mockWorkspaceService.On("CanAccess", mock.Anything, workspaceID, userID).Return(true, nil)
 	mockCollectionService.On("Create", mock.Anything, workspaceID, "My Collection", mock.Anything, userID).Return(collection, nil)
+	mockHub.On("BroadcastCollectionCreate", workspaceID, collection.ID, userID, "My Collection", 1).Return()
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -79,6 +80,7 @@ func TestCollectionHandler_Create_Success(t *testing.T) {
 
 	mockCollectionService.AssertExpectations(t)
 	mockWorkspaceService.AssertExpectations(t)
+	mockHub.AssertExpectations(t)
 }
 
 func TestCollectionHandler_Create_WorkspaceNotFound(t *testing.T) {
@@ -284,7 +286,7 @@ func TestCollectionHandler_Update_Success(t *testing.T) {
 	mockCollectionService.On("GetByID", mock.Anything, collectionID).Return(existing, nil)
 	mockWorkspaceService.On("CanAccess", mock.Anything, workspaceID, userID).Return(true, nil)
 	mockCollectionService.On("Update", mock.Anything, collectionID, &newName, mock.Anything, 1, userID).Return(updated, nil)
-	mockHub.On("BroadcastCollectionUpdate", workspaceID, collectionID, userID, 2).Return()
+	mockHub.On("BroadcastCollectionUpdate", workspaceID, collectionID, userID, "Updated Name", 2).Return()
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -410,7 +412,7 @@ func TestCollectionHandler_Update_MissingVersion(t *testing.T) {
 }
 
 func TestCollectionHandler_Delete_Success(t *testing.T) {
-	mockCollectionService, mockWorkspaceService, _, handler, jwtSvc := setupCollectionTest(t)
+	mockCollectionService, mockWorkspaceService, mockHub, handler, jwtSvc := setupCollectionTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -427,6 +429,7 @@ func TestCollectionHandler_Delete_Success(t *testing.T) {
 	mockCollectionService.On("GetByID", mock.Anything, collectionID).Return(collection, nil)
 	mockWorkspaceService.On("CanModify", mock.Anything, workspaceID, userID).Return(true, nil)
 	mockCollectionService.On("Delete", mock.Anything, collectionID).Return(nil)
+	mockHub.On("BroadcastCollectionDelete", workspaceID, collectionID, userID).Return()
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -445,6 +448,7 @@ func TestCollectionHandler_Delete_Success(t *testing.T) {
 
 	mockCollectionService.AssertExpectations(t)
 	mockWorkspaceService.AssertExpectations(t)
+	mockHub.AssertExpectations(t)
 }
 
 func TestCollectionHandler_Delete_Forbidden(t *testing.T) {

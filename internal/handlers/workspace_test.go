@@ -22,18 +22,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupWorkspaceTest(t *testing.T) (*testutil.MockWorkspaceService, *testutil.MockUserService, *testutil.MockEmailService, *WorkspaceHandler, *services.JWTService) {
+func setupWorkspaceTest(t *testing.T) (*testutil.MockWorkspaceService, *testutil.MockUserService, *testutil.MockEmailService, *testutil.MockHub, *WorkspaceHandler, *services.JWTService) {
 	t.Helper()
 	mockWorkspaceService := new(testutil.MockWorkspaceService)
 	mockUserService := new(testutil.MockUserService)
 	mockEmailService := new(testutil.MockEmailService)
-	handler := NewWorkspaceHandler(mockWorkspaceService, mockUserService, mockEmailService, "http://localhost")
+	mockHub := new(testutil.MockHub)
+	handler := NewWorkspaceHandler(mockWorkspaceService, mockUserService, mockEmailService, mockHub, "http://localhost")
 	jwtSvc := services.NewJWTService("test-secret-key", 15*time.Minute, 24*time.Hour)
-	return mockWorkspaceService, mockUserService, mockEmailService, handler, jwtSvc
+	return mockWorkspaceService, mockUserService, mockEmailService, mockHub, handler, jwtSvc
 }
 
 func TestWorkspaceHandler_Create_Success(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -75,7 +76,7 @@ func TestWorkspaceHandler_Create_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Create_EmptyName(t *testing.T) {
-	_, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	_, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -101,7 +102,7 @@ func TestWorkspaceHandler_Create_EmptyName(t *testing.T) {
 }
 
 func TestWorkspaceHandler_List_Success(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -139,7 +140,7 @@ func TestWorkspaceHandler_List_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Get_Success(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -178,7 +179,7 @@ func TestWorkspaceHandler_Get_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Get_NotFound(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -205,7 +206,7 @@ func TestWorkspaceHandler_Get_NotFound(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Update_Success(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, mockHub, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -218,6 +219,7 @@ func TestWorkspaceHandler_Update_Success(t *testing.T) {
 
 	mockWorkspaceService.On("CanModify", mock.Anything, workspaceID, userID).Return(true, nil)
 	mockWorkspaceService.On("Update", mock.Anything, workspaceID, "Updated Name").Return(updatedWorkspace, nil)
+	mockHub.On("BroadcastWorkspaceUpdate", workspaceID, userID, "Updated Name").Return()
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())
@@ -244,10 +246,11 @@ func TestWorkspaceHandler_Update_Success(t *testing.T) {
 	assert.Equal(t, "Updated Name", response.Name)
 
 	mockWorkspaceService.AssertExpectations(t)
+	mockHub.AssertExpectations(t)
 }
 
 func TestWorkspaceHandler_Update_Forbidden(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -278,7 +281,7 @@ func TestWorkspaceHandler_Update_Forbidden(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_Success(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -306,7 +309,7 @@ func TestWorkspaceHandler_Delete_Success(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_Forbidden(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -333,7 +336,7 @@ func TestWorkspaceHandler_Delete_Forbidden(t *testing.T) {
 }
 
 func TestWorkspaceHandler_Delete_ServiceError(t *testing.T) {
-	mockWorkspaceService, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	mockWorkspaceService, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	userID := uuid.New()
 	email := "test@example.com"
@@ -361,7 +364,7 @@ func TestWorkspaceHandler_Delete_ServiceError(t *testing.T) {
 }
 
 func TestWorkspaceHandler_NotAuthenticated(t *testing.T) {
-	_, _, _, handler, jwtSvc := setupWorkspaceTest(t)
+	_, _, _, _, handler, jwtSvc := setupWorkspaceTest(t)
 
 	app := drift.New()
 	app.Use(driftmw.BodyParser())

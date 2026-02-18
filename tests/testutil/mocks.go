@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/dimitrije/nikode-api/internal/oauth"
 	"github.com/dimitrije/nikode-api/internal/services"
-	"github.com/dimitrije/nikode-api/internal/sse"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
@@ -292,29 +292,49 @@ func (m *MockJWTService) RefreshExpiry() time.Duration {
 	return args.Get(0).(time.Duration)
 }
 
-// MockSSEHub mocks the SSE Hub
-type MockSSEHub struct {
+// MockHub mocks the Hub
+type MockHub struct {
 	mock.Mock
 }
 
-func (m *MockSSEHub) Register(client *sse.Client) {
+func (m *MockHub) Register(client *hub.Client) {
 	m.Called(client)
 }
 
-func (m *MockSSEHub) Unregister(client *sse.Client) {
+func (m *MockHub) Unregister(client *hub.Client) {
 	m.Called(client)
 }
 
-func (m *MockSSEHub) SubscribeToWorkspace(clientID string, workspaceID uuid.UUID) {
+func (m *MockHub) SubscribeToWorkspace(clientID string, workspaceID uuid.UUID) {
 	m.Called(clientID, workspaceID)
 }
 
-func (m *MockSSEHub) UnsubscribeFromWorkspace(clientID string, workspaceID uuid.UUID) {
+func (m *MockHub) UnsubscribeFromWorkspace(clientID string, workspaceID uuid.UUID) {
 	m.Called(clientID, workspaceID)
 }
 
-func (m *MockSSEHub) BroadcastCollectionUpdate(workspaceID, collectionID, userID uuid.UUID, version int) {
-	m.Called(workspaceID, collectionID, userID, version)
+func (m *MockHub) BroadcastCollectionCreate(workspaceID, collectionID, createdBy uuid.UUID, name string, version int) {
+	m.Called(workspaceID, collectionID, createdBy, name, version)
+}
+
+func (m *MockHub) BroadcastCollectionUpdate(workspaceID, collectionID, updatedBy uuid.UUID, name string, version int) {
+	m.Called(workspaceID, collectionID, updatedBy, name, version)
+}
+
+func (m *MockHub) BroadcastCollectionDelete(workspaceID, collectionID, deletedBy uuid.UUID) {
+	m.Called(workspaceID, collectionID, deletedBy)
+}
+
+func (m *MockHub) BroadcastWorkspaceUpdate(workspaceID, updatedBy uuid.UUID, name string) {
+	m.Called(workspaceID, updatedBy, name)
+}
+
+func (m *MockHub) BroadcastMemberJoined(workspaceID, userID uuid.UUID, userName string, avatarURL *string) {
+	m.Called(workspaceID, userID, userName, avatarURL)
+}
+
+func (m *MockHub) BroadcastMemberLeft(workspaceID, userID uuid.UUID) {
+	m.Called(workspaceID, userID)
 }
 
 // MockEmailService mocks the EmailService

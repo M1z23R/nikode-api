@@ -17,14 +17,16 @@ type WorkspaceHandler struct {
 	workspaceService WorkspaceServiceInterface
 	userService      UserServiceInterface
 	emailService     EmailServiceInterface
+	hub              HubInterface
 	baseURL          string
 }
 
-func NewWorkspaceHandler(workspaceService WorkspaceServiceInterface, userService UserServiceInterface, emailService EmailServiceInterface, baseURL string) *WorkspaceHandler {
+func NewWorkspaceHandler(workspaceService WorkspaceServiceInterface, userService UserServiceInterface, emailService EmailServiceInterface, hub HubInterface, baseURL string) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		workspaceService: workspaceService,
 		userService:      userService,
 		emailService:     emailService,
+		hub:              hub,
 		baseURL:          baseURL,
 	}
 }
@@ -165,6 +167,8 @@ func (h *WorkspaceHandler) Update(c *drift.Context) {
 		c.InternalServerError("failed to update workspace")
 		return
 	}
+
+	h.hub.BroadcastWorkspaceUpdate(workspaceID, userID, workspace.Name)
 
 	_ = c.JSON(200, dto.WorkspaceResponse{
 		ID:      workspace.ID,
@@ -351,6 +355,8 @@ func (h *WorkspaceHandler) RemoveMember(c *drift.Context) {
 		return
 	}
 
+	h.hub.BroadcastMemberLeft(workspaceID, memberID)
+
 	_ = c.JSON(200, map[string]string{"message": "member removed"})
 }
 
@@ -379,6 +385,8 @@ func (h *WorkspaceHandler) LeaveWorkspace(c *drift.Context) {
 		c.InternalServerError("failed to leave workspace")
 		return
 	}
+
+	h.hub.BroadcastMemberLeft(workspaceID, userID)
 
 	_ = c.JSON(200, map[string]string{"message": "left workspace"})
 }
@@ -529,6 +537,13 @@ func (h *WorkspaceHandler) AcceptInvite(c *drift.Context) {
 		}
 		c.InternalServerError("failed to accept invite")
 		return
+	}
+
+	// Look up invite for workspace ID, and user for name/avatar
+	invite, _ := h.workspaceService.GetInviteByID(context.Background(), inviteID)
+	user, _ := h.userService.GetByID(context.Background(), userID)
+	if invite != nil && user != nil {
+		h.hub.BroadcastMemberJoined(invite.WorkspaceID, userID, user.Name, user.AvatarURL)
 	}
 
 	_ = c.JSON(200, map[string]string{"message": "invite accepted"})

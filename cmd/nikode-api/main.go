@@ -14,7 +14,7 @@ import (
 	"github.com/dimitrije/nikode-api/internal/handlers"
 	authmw "github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
-	"github.com/dimitrije/nikode-api/internal/sse"
+	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/m1z23r/drift/pkg/middleware"
 )
@@ -44,16 +44,16 @@ func main() {
 	collectionService := services.NewCollectionService(db)
 	emailService := services.NewEmailService(cfg.SMTP)
 
-	hub := sse.NewHub()
-	go hub.Run()
+	h := hub.NewHub()
+	go h.Run()
 
 	authHandler := handlers.NewAuthHandler(cfg, userService, tokenService, jwtService)
 	userHandler := handlers.NewUserHandler(userService)
-	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, userService, emailService, cfg.BaseURL)
-	collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, hub)
-	sseHandler := handlers.NewSSEHandler(hub, workspaceService)
+	workspaceHandler := handlers.NewWorkspaceHandler(workspaceService, userService, emailService, h, cfg.BaseURL)
+	collectionHandler := handlers.NewCollectionHandler(collectionService, workspaceService, h)
 	inviteHandler := handlers.NewInviteHandler(workspaceService)
-	wsHandler := handlers.NewWebSocketHandler()
+	pingPongHandler := handlers.NewWebSocketHandler()
+	syncHandler := handlers.NewSyncHandler(h, workspaceService, userService, jwtService)
 
 	app := drift.New()
 
@@ -111,15 +111,12 @@ func main() {
 	protected.Patch("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Update)
 	protected.Delete("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Delete)
 
-	protected.Get("/workspaces/:workspaceId/events", sseHandler.Connect)
-	protected.Post("/sse/:clientId/subscribe/:workspaceId", sseHandler.Subscribe)
-	protected.Post("/sse/:clientId/unsubscribe/:workspaceId", sseHandler.Unsubscribe)
-
 	api.Get("/health", func(c *drift.Context) {
 		_ = c.JSON(200, map[string]string{"status": "ok"})
 	})
 
-	api.Get("/ws", wsHandler.Connect)
+	api.Get("/ws", pingPongHandler.Connect)
+	api.Get("/sync", syncHandler.Connect)
 
 	// Public invite pages (no auth required)
 	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
