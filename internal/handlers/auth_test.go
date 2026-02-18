@@ -414,9 +414,8 @@ func TestAuthHandler_Callback_UnsupportedProvider(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=unsupported+provider")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "unsupported provider")
 }
 
 func TestAuthHandler_Callback_MissingState(t *testing.T) {
@@ -434,9 +433,8 @@ func TestAuthHandler_Callback_MissingState(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=missing+state+parameter")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "missing state parameter")
 }
 
 func TestAuthHandler_Callback_InvalidState(t *testing.T) {
@@ -454,9 +452,8 @@ func TestAuthHandler_Callback_InvalidState(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=invalid+or+expired+state")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "invalid or expired state")
 }
 
 func TestAuthHandler_Callback_ExpiredState(t *testing.T) {
@@ -478,9 +475,8 @@ func TestAuthHandler_Callback_ExpiredState(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=state+expired")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "state expired")
 }
 
 func TestAuthHandler_Callback_MissingCode(t *testing.T) {
@@ -502,9 +498,8 @@ func TestAuthHandler_Callback_MissingCode(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=missing+authorization+code")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "missing authorization code")
 }
 
 func TestAuthHandler_Callback_ExchangeCodeError(t *testing.T) {
@@ -527,9 +522,8 @@ func TestAuthHandler_Callback_ExchangeCodeError(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=failed+to+exchange+code")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "failed to exchange code")
 
 	mockProvider.AssertExpectations(t)
 }
@@ -562,9 +556,8 @@ func TestAuthHandler_Callback_UserCreationError(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, "error=failed+to+create+user")
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Contains(t, rec.Body.String(), "failed to create user")
 
 	mockProvider.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
@@ -604,11 +597,11 @@ func TestAuthHandler_Callback_Success(t *testing.T) {
 
 	app.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusFound, rec.Code)
-	location := rec.Header().Get("Location")
-	assert.Contains(t, location, cfg.FrontendCallbackURL)
-	assert.Contains(t, location, "code=")
-	assert.NotContains(t, location, "error=")
+	assert.Equal(t, http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	assert.Contains(t, body, cfg.FrontendCallbackURL)
+	assert.Contains(t, body, "code=")
+	assert.Contains(t, body, "signed in")
 
 	mockProvider.AssertExpectations(t)
 	mockUserService.AssertExpectations(t)
