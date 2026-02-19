@@ -341,6 +341,37 @@ func (m *MockHub) BroadcastToUser(userID uuid.UUID, eventType string, data any) 
 	m.Called(userID, eventType, data)
 }
 
+func (m *MockHub) SendChatMessage(workspaceID, senderID uuid.UUID, senderName string, avatarURL *string, content string, encrypted bool) (*hub.ChatMessage, error) {
+	args := m.Called(workspaceID, senderID, senderName, avatarURL, content, encrypted)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*hub.ChatMessage), args.Error(1)
+}
+
+func (m *MockHub) GetChatHistory(workspaceID uuid.UUID, limit int) []hub.ChatMessage {
+	args := m.Called(workspaceID, limit)
+	return args.Get(0).([]hub.ChatMessage)
+}
+
+func (m *MockHub) IsSubscribedToWorkspace(clientID string, workspaceID uuid.UUID) bool {
+	args := m.Called(clientID, workspaceID)
+	return args.Bool(0)
+}
+
+func (m *MockHub) SetPublicKey(clientID string, publicKey string) {
+	m.Called(clientID, publicKey)
+}
+
+func (m *MockHub) GetWorkspacePublicKeys(workspaceID uuid.UUID) []hub.PublicKeyInfo {
+	args := m.Called(workspaceID)
+	return args.Get(0).([]hub.PublicKeyInfo)
+}
+
+func (m *MockHub) RelayEncryptedKey(targetUserID uuid.UUID, fromUserID uuid.UUID, workspaceID uuid.UUID, encryptedKey string) {
+	m.Called(targetUserID, fromUserID, workspaceID, encryptedKey)
+}
+
 // MockEmailService mocks the EmailService
 type MockEmailService struct {
 	mock.Mock

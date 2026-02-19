@@ -81,6 +81,16 @@ type HubInterface interface {
 	BroadcastMemberJoined(workspaceID, userID uuid.UUID, userName string, avatarURL *string)
 	BroadcastMemberLeft(workspaceID, userID uuid.UUID)
 	BroadcastToUser(userID uuid.UUID, eventType string, data any)
+
+	// Chat
+	SendChatMessage(workspaceID, senderID uuid.UUID, senderName string, avatarURL *string, content string, encrypted bool) (*hub.ChatMessage, error)
+	GetChatHistory(workspaceID uuid.UUID, limit int) []hub.ChatMessage
+	IsSubscribedToWorkspace(clientID string, workspaceID uuid.UUID) bool
+
+	// Key exchange
+	SetPublicKey(clientID string, publicKey string)
+	GetWorkspacePublicKeys(workspaceID uuid.UUID) []hub.PublicKeyInfo
+	RelayEncryptedKey(targetUserID uuid.UUID, fromUserID uuid.UUID, workspaceID uuid.UUID, encryptedKey string)
 }
 
 // EmailServiceInterface defines the methods used by handlers from EmailService

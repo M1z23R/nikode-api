@@ -22,6 +22,16 @@ const (
 type ClientMessage struct {
 	Action      string `json:"action"`
 	WorkspaceID string `json:"workspace_id,omitempty"`
+
+	// Chat
+	Content   string `json:"content,omitempty"`
+	Encrypted bool   `json:"encrypted,omitempty"`
+	Limit     int    `json:"limit,omitempty"`
+
+	// Key exchange
+	PublicKey    string `json:"public_key,omitempty"`
+	TargetUserID string `json:"target_user_id,omitempty"`
+	EncryptedKey string `json:"encrypted_key,omitempty"`
 }
 
 type SyncHandler struct {
@@ -148,6 +158,14 @@ func (h *SyncHandler) Connect(c *drift.Context) {
 				h.handleUnsubscribe(conn, client, msg)
 			case "ping":
 				_ = conn.WriteJSON(map[string]string{"type": "pong"})
+			case "set_public_key":
+				h.handleSetPublicKey(conn, client, msg)
+			case "send_chat":
+				h.handleSendChat(conn, client, msg)
+			case "get_chat_history":
+				h.handleGetChatHistory(conn, client, msg)
+			case "share_workspace_key":
+				h.handleShareWorkspaceKey(conn, client, msg)
 			default:
 				_ = conn.WriteJSON(map[string]string{
 					"type":       "error",
@@ -204,5 +222,164 @@ func (h *SyncHandler) handleUnsubscribe(conn *websocket.Conn, client *hub.Client
 	_ = conn.WriteJSON(map[string]string{
 		"type":         "unsubscribed",
 		"workspace_id": workspaceID.String(),
+	})
+}
+
+func (h *SyncHandler) handleSetPublicKey(conn *websocket.Conn, client *hub.Client, msg ClientMessage) {
+	if msg.PublicKey == "" {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "public_key is required",
+			"ref_action": "set_public_key",
+		})
+		return
+	}
+
+	h.hub.SetPublicKey(client.ID, msg.PublicKey)
+
+	_ = conn.WriteJSON(map[string]string{
+		"type": "public_key_set",
+	})
+}
+
+func (h *SyncHandler) handleSendChat(conn *websocket.Conn, client *hub.Client, msg ClientMessage) {
+	workspaceID, err := uuid.Parse(msg.WorkspaceID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "invalid workspace_id",
+			"ref_action": "send_chat",
+		})
+		return
+	}
+
+	// Check if subscribed
+	if !h.hub.IsSubscribedToWorkspace(client.ID, workspaceID) {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "not subscribed to workspace",
+			"ref_action": "send_chat",
+		})
+		return
+	}
+
+	if msg.Content == "" {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "content is required",
+			"ref_action": "send_chat",
+		})
+		return
+	}
+
+	chatMsg, err := h.hub.SendChatMessage(workspaceID, client.UserID, client.UserName, client.AvatarURL, msg.Content, msg.Encrypted)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    err.Error(),
+			"ref_action": "send_chat",
+		})
+		return
+	}
+
+	_ = conn.WriteJSON(map[string]string{
+		"type":       "chat_sent",
+		"message_id": chatMsg.ID,
+	})
+}
+
+func (h *SyncHandler) handleGetChatHistory(conn *websocket.Conn, client *hub.Client, msg ClientMessage) {
+	workspaceID, err := uuid.Parse(msg.WorkspaceID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "invalid workspace_id",
+			"ref_action": "get_chat_history",
+		})
+		return
+	}
+
+	// Check if subscribed
+	if !h.hub.IsSubscribedToWorkspace(client.ID, workspaceID) {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "not subscribed to workspace",
+			"ref_action": "get_chat_history",
+		})
+		return
+	}
+
+	limit := msg.Limit
+	if limit <= 0 {
+		limit = 50
+	}
+
+	messages := h.hub.GetChatHistory(workspaceID, limit)
+
+	// Convert to ChatMessageData
+	messageData := make([]hub.ChatMessageData, len(messages))
+	for i, m := range messages {
+		messageData[i] = hub.ChatMessageData{
+			ID:         m.ID,
+			SenderID:   m.SenderID,
+			SenderName: m.SenderName,
+			AvatarURL:  m.AvatarURL,
+			Content:    m.Content,
+			Encrypted:  m.Encrypted,
+			Timestamp:  m.Timestamp.UTC().Format(time.RFC3339),
+		}
+	}
+
+	_ = conn.WriteJSON(map[string]interface{}{
+		"type":         "chat_history",
+		"workspace_id": workspaceID.String(),
+		"messages":     messageData,
+	})
+}
+
+func (h *SyncHandler) handleShareWorkspaceKey(conn *websocket.Conn, client *hub.Client, msg ClientMessage) {
+	workspaceID, err := uuid.Parse(msg.WorkspaceID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "invalid workspace_id",
+			"ref_action": "share_workspace_key",
+		})
+		return
+	}
+
+	targetUserID, err := uuid.Parse(msg.TargetUserID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "invalid target_user_id",
+			"ref_action": "share_workspace_key",
+		})
+		return
+	}
+
+	if msg.EncryptedKey == "" {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "encrypted_key is required",
+			"ref_action": "share_workspace_key",
+		})
+		return
+	}
+
+	// Check if subscribed
+	if !h.hub.IsSubscribedToWorkspace(client.ID, workspaceID) {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "not subscribed to workspace",
+			"ref_action": "share_workspace_key",
+		})
+		return
+	}
+
+	h.hub.RelayEncryptedKey(targetUserID, client.UserID, workspaceID, msg.EncryptedKey)
+
+	_ = conn.WriteJSON(map[string]string{
+		"type": "workspace_key_shared",
 	})
 }
