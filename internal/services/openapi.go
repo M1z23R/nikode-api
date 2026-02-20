@@ -400,7 +400,7 @@ func (s *OpenAPIService) generateSchemaExample(schema *openapi3.Schema) any {
 		}
 		return []any{}
 	case "string":
-		if schema.Enum != nil && len(schema.Enum) > 0 {
+		if len(schema.Enum) > 0 {
 			return schema.Enum[0]
 		}
 		return "string"

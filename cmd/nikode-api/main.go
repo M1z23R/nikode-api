@@ -44,6 +44,7 @@ func main() {
 	collectionService := services.NewCollectionService(db)
 	emailService := services.NewEmailService(cfg.SMTP)
 	apiKeyService := services.NewAPIKeyService(db)
+	vaultService := services.NewVaultService(db)
 	openAPIService := services.NewOpenAPIService()
 
 	h := hub.NewHub()
@@ -57,6 +58,7 @@ func main() {
 	pingPongHandler := handlers.NewWebSocketHandler()
 	syncHandler := handlers.NewSyncHandler(h, workspaceService, userService, jwtService)
 	apiKeyHandler := handlers.NewAPIKeyHandler(apiKeyService, workspaceService)
+	vaultHandler := handlers.NewVaultHandler(vaultService, workspaceService)
 	automationHandler := handlers.NewAutomationHandler(collectionService, openAPIService)
 
 	app := drift.New()
@@ -119,6 +121,15 @@ func main() {
 	protected.Post("/workspaces/:workspaceId/api-keys", apiKeyHandler.Create)
 	protected.Get("/workspaces/:workspaceId/api-keys", apiKeyHandler.List)
 	protected.Delete("/workspaces/:workspaceId/api-keys/:keyId", apiKeyHandler.Revoke)
+
+	// Vault (zero-knowledge encrypted vault per workspace)
+	protected.Post("/workspaces/:workspaceId/vault", vaultHandler.CreateVault)
+	protected.Get("/workspaces/:workspaceId/vault", vaultHandler.GetVault)
+	protected.Delete("/workspaces/:workspaceId/vault", vaultHandler.DeleteVault)
+	protected.Get("/workspaces/:workspaceId/vault/items", vaultHandler.ListItems)
+	protected.Post("/workspaces/:workspaceId/vault/items", vaultHandler.CreateItem)
+	protected.Patch("/workspaces/:workspaceId/vault/items/:itemId", vaultHandler.UpdateItem)
+	protected.Delete("/workspaces/:workspaceId/vault/items/:itemId", vaultHandler.DeleteItem)
 
 	// Automation endpoints (API key auth)
 	automation := api.Group("/automation")

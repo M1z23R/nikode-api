@@ -19,7 +19,11 @@ func (h *WebSocketHandler) Connect(c *drift.Context) {
 		log.Printf("WebSocket upgrade failed: %v", err)
 		return
 	}
-	defer conn.Close(websocket.CloseNormalClosure, "")
+	defer func() {
+		if err := conn.Close(websocket.CloseNormalClosure, ""); err != nil {
+			log.Printf("WebSocket close error: %v", err)
+		}
+	}()
 
 	if err := conn.WriteJSON(map[string]string{
 		"type":    "connected",
