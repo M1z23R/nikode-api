@@ -102,7 +102,11 @@ func (h *SyncHandler) Connect(c *drift.Context) {
 	go func() {
 		ticker := time.NewTicker(syncPingInterval)
 		defer ticker.Stop()
-		defer conn.Close(websocket.CloseNormalClosure, "")
+		defer func() {
+			if err := conn.Close(websocket.CloseNormalClosure, ""); err != nil {
+				log.Printf("WebSocket close error: %v", err)
+			}
+		}()
 
 		for {
 			select {

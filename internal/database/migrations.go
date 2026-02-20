@@ -181,6 +181,26 @@ var migrations = []string{
 	)`,
 	`CREATE INDEX IF NOT EXISTS idx_workspace_api_keys_workspace_id ON workspace_api_keys(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_workspace_api_keys_key_hash ON workspace_api_keys(key_hash)`,
+
+	// Workspace Vaults (zero-knowledge encrypted vault per workspace)
+	`CREATE TABLE IF NOT EXISTS workspace_vaults (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE UNIQUE,
+		salt TEXT NOT NULL,
+		verification TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	)`,
+
+	`CREATE TABLE IF NOT EXISTS vault_items (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		vault_id UUID NOT NULL REFERENCES workspace_vaults(id) ON DELETE CASCADE,
+		data TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	)`,
+
+	`CREATE INDEX IF NOT EXISTS idx_vault_items_vault_id ON vault_items(vault_id)`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {

@@ -7,9 +7,10 @@ import (
 )
 
 type UpsertCollectionRequest struct {
-	Name  string          `json:"name"`
-	Spec  json.RawMessage `json:"spec"`
-	Force bool            `json:"force,omitempty"`
+	Name         string          `json:"name"`
+	CollectionID string          `json:"collection_id,omitempty"`
+	Resolution   string          `json:"resolution,omitempty"` // "force", "clone", "fail" (default: "force")
+	Spec         json.RawMessage `json:"spec"`
 }
 
 type UpsertCollectionResponse struct {

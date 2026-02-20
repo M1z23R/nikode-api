@@ -108,6 +108,17 @@ type APIKeyServiceInterface interface {
 	Revoke(ctx context.Context, keyID, workspaceID uuid.UUID) error
 }
 
+// VaultServiceInterface defines the methods used by handlers from VaultService
+type VaultServiceInterface interface {
+	Create(ctx context.Context, workspaceID uuid.UUID, salt, verification string) (*models.Vault, error)
+	GetByWorkspaceID(ctx context.Context, workspaceID uuid.UUID) (*models.Vault, error)
+	Delete(ctx context.Context, workspaceID uuid.UUID) error
+	ListItems(ctx context.Context, vaultID uuid.UUID) ([]models.VaultItem, error)
+	CreateItem(ctx context.Context, vaultID uuid.UUID, data string) (*models.VaultItem, error)
+	UpdateItem(ctx context.Context, itemID, vaultID uuid.UUID, data string) (*models.VaultItem, error)
+	DeleteItem(ctx context.Context, itemID, vaultID uuid.UUID) error
+}
+
 // OpenAPIServiceInterface defines the methods used by handlers from OpenAPIService
 type OpenAPIServiceInterface interface {
 	ParseOpenAPI(content []byte) (any, error)
