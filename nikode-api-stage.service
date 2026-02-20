@@ -1,0 +1,29 @@
+[Unit]
+Description=Nikode API (Staging)
+After=network.target
+
+[Service]
+Type=simple
+User=nikode-stage
+Group=nikode-stage
+WorkingDirectory=/opt/nikode-api-stage
+
+ExecStart=/opt/nikode-api-stage/nikode-api-stage
+
+EnvironmentFile=/opt/nikode-api-stage/.env
+
+Restart=always
+RestartSec=3
+
+# Hardening (safe defaults)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
