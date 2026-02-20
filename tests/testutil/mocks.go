@@ -216,6 +216,22 @@ func (m *MockCollectionService) Delete(ctx context.Context, collectionID uuid.UU
 	return args.Error(0)
 }
 
+func (m *MockCollectionService) GetByWorkspaceAndName(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Collection, error) {
+	args := m.Called(ctx, workspaceID, name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Collection), args.Error(1)
+}
+
+func (m *MockCollectionService) ForceUpdate(ctx context.Context, collectionID uuid.UUID, name string, data json.RawMessage) (*models.Collection, error) {
+	args := m.Called(ctx, collectionID, name, data)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Collection), args.Error(1)
+}
+
 // MockTokenService mocks the TokenService
 type MockTokenService struct {
 	mock.Mock

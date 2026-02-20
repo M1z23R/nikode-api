@@ -154,3 +154,39 @@ func (s *CollectionService) Delete(ctx context.Context, collectionID uuid.UUID) 
 	_, err := s.db.Pool.Exec(ctx, `DELETE FROM collections WHERE id = $1`, collectionID)
 	return err
 }
+
+// GetByWorkspaceAndName finds a collection by workspace ID and name
+func (s *CollectionService) GetByWorkspaceAndName(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Collection, error) {
+	var collection models.Collection
+	err := s.db.Pool.QueryRow(ctx, `
+		SELECT id, workspace_id, name, data, version, updated_by, created_at, updated_at
+		FROM collections WHERE workspace_id = $1 AND name = $2
+	`, workspaceID, name).Scan(
+		&collection.ID, &collection.WorkspaceID, &collection.Name,
+		&collection.Data, &collection.Version, &collection.UpdatedBy,
+		&collection.CreatedAt, &collection.UpdatedAt,
+	)
+	if err != nil {
+		return nil, ErrCollectionNotFound
+	}
+	return &collection, nil
+}
+
+// ForceUpdate updates a collection without version check (bypasses optimistic locking)
+func (s *CollectionService) ForceUpdate(ctx context.Context, collectionID uuid.UUID, name string, data json.RawMessage) (*models.Collection, error) {
+	var collection models.Collection
+	err := s.db.Pool.QueryRow(ctx, `
+		UPDATE collections
+		SET name = $1, data = $2, version = version + 1, updated_at = NOW()
+		WHERE id = $3
+		RETURNING id, workspace_id, name, data, version, updated_by, created_at, updated_at
+	`, name, data, collectionID).Scan(
+		&collection.ID, &collection.WorkspaceID, &collection.Name,
+		&collection.Data, &collection.Version, &collection.UpdatedBy,
+		&collection.CreatedAt, &collection.UpdatedAt,
+	)
+	if err != nil {
+		return nil, ErrCollectionNotFound
+	}
+	return &collection, nil
+}

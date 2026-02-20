@@ -43,6 +43,8 @@ func main() {
 	workspaceService := services.NewWorkspaceService(db)
 	collectionService := services.NewCollectionService(db)
 	emailService := services.NewEmailService(cfg.SMTP)
+	apiKeyService := services.NewAPIKeyService(db)
+	openAPIService := services.NewOpenAPIService()
 
 	h := hub.NewHub()
 	go h.Run()
@@ -54,6 +56,8 @@ func main() {
 	inviteHandler := handlers.NewInviteHandler(workspaceService, h)
 	pingPongHandler := handlers.NewWebSocketHandler()
 	syncHandler := handlers.NewSyncHandler(h, workspaceService, userService, jwtService)
+	apiKeyHandler := handlers.NewAPIKeyHandler(apiKeyService, workspaceService)
+	automationHandler := handlers.NewAutomationHandler(collectionService, openAPIService)
 
 	app := drift.New()
 
@@ -110,6 +114,16 @@ func main() {
 	protected.Get("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Get)
 	protected.Patch("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Update)
 	protected.Delete("/workspaces/:workspaceId/collections/:collectionId", collectionHandler.Delete)
+
+	// API Key management (owner only)
+	protected.Post("/workspaces/:workspaceId/api-keys", apiKeyHandler.Create)
+	protected.Get("/workspaces/:workspaceId/api-keys", apiKeyHandler.List)
+	protected.Delete("/workspaces/:workspaceId/api-keys/:keyId", apiKeyHandler.Revoke)
+
+	// Automation endpoints (API key auth)
+	automation := api.Group("/automation")
+	automation.Use(authmw.APIKeyAuth(apiKeyService))
+	automation.Put("/collections", automationHandler.UpsertCollection)
 
 	api.Get("/health", func(c *drift.Context) {
 		_ = c.JSON(200, map[string]string{"status": "ok"})

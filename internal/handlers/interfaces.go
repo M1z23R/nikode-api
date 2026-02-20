@@ -49,7 +49,9 @@ type CollectionServiceInterface interface {
 	Create(ctx context.Context, workspaceID uuid.UUID, name string, data json.RawMessage, userID uuid.UUID) (*models.Collection, error)
 	GetByID(ctx context.Context, collectionID uuid.UUID) (*models.Collection, error)
 	GetByWorkspace(ctx context.Context, workspaceID uuid.UUID) ([]models.Collection, error)
+	GetByWorkspaceAndName(ctx context.Context, workspaceID uuid.UUID, name string) (*models.Collection, error)
 	Update(ctx context.Context, collectionID uuid.UUID, name *string, data json.RawMessage, expectedVersion int, userID uuid.UUID) (*models.Collection, error)
+	ForceUpdate(ctx context.Context, collectionID uuid.UUID, name string, data json.RawMessage) (*models.Collection, error)
 	Delete(ctx context.Context, collectionID uuid.UUID) error
 }
 
@@ -96,4 +98,18 @@ type HubInterface interface {
 // EmailServiceInterface defines the methods used by handlers from EmailService
 type EmailServiceInterface interface {
 	SendWorkspaceInvite(to, workspaceName, inviterName, inviteURL string) error
+}
+
+// APIKeyServiceInterface defines the methods used by handlers from APIKeyService
+type APIKeyServiceInterface interface {
+	Create(ctx context.Context, workspaceID uuid.UUID, name string, createdBy uuid.UUID, expiresAt *time.Time) (*models.WorkspaceAPIKey, string, error)
+	ValidateAndGetWorkspace(ctx context.Context, key string) (uuid.UUID, error)
+	List(ctx context.Context, workspaceID uuid.UUID) ([]models.WorkspaceAPIKey, error)
+	Revoke(ctx context.Context, keyID, workspaceID uuid.UUID) error
+}
+
+// OpenAPIServiceInterface defines the methods used by handlers from OpenAPIService
+type OpenAPIServiceInterface interface {
+	ParseOpenAPI(content []byte) (any, error)
+	ConvertToNikode(spec any) (json.RawMessage, error)
 }

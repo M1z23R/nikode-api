@@ -165,6 +165,22 @@ var migrations = []string{
 			ALTER TABLE workspaces ALTER COLUMN owner_id SET NOT NULL;
 		END IF;
 	END $$`,
+
+	// Workspace API Keys for CI/CD automation
+	`CREATE TABLE IF NOT EXISTS workspace_api_keys (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+		name VARCHAR(255) NOT NULL,
+		key_hash VARCHAR(255) NOT NULL UNIQUE,
+		key_prefix VARCHAR(20) NOT NULL,
+		created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		expires_at TIMESTAMP WITH TIME ZONE,
+		revoked_at TIMESTAMP WITH TIME ZONE,
+		last_used_at TIMESTAMP WITH TIME ZONE,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_api_keys_workspace_id ON workspace_api_keys(workspace_id)`,
+	`CREATE INDEX IF NOT EXISTS idx_workspace_api_keys_key_hash ON workspace_api_keys(key_hash)`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {
