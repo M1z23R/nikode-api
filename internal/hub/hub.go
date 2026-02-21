@@ -535,6 +535,19 @@ func (h *Hub) SetPublicKey(clientID string, publicKey string) {
 		h.keysMu.Lock()
 		h.publicKeys[client.UserID] = publicKey
 		h.keysMu.Unlock()
+
+		// Trigger key exchange for all workspaces this client is already subscribed to.
+		// This handles the race condition where subscribe arrives before set_public_key.
+		h.mu.RLock()
+		workspaces := make([]uuid.UUID, 0, len(client.Workspaces))
+		for wsID := range client.Workspaces {
+			workspaces = append(workspaces, wsID)
+		}
+		h.mu.RUnlock()
+
+		for _, wsID := range workspaces {
+			h.triggerKeyExchange(wsID, client)
+		}
 	}
 }
 
