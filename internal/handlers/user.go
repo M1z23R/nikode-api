@@ -31,11 +31,12 @@ func (h *UserHandler) GetMe(c *drift.Context) {
 	}
 
 	_ = c.JSON(200, dto.UserResponse{
-		ID:        user.ID,
-		Email:     user.Email,
-		Name:      user.Name,
-		AvatarURL: user.AvatarURL,
-		Provider:  user.Provider,
+		ID:         user.ID,
+		Email:      user.Email,
+		Name:       user.Name,
+		AvatarURL:  user.AvatarURL,
+		Provider:   user.Provider,
+		GlobalRole: user.GlobalRole,
 	})
 }
 
@@ -64,10 +65,11 @@ func (h *UserHandler) UpdateMe(c *drift.Context) {
 	}
 
 	_ = c.JSON(200, dto.UserResponse{
-		ID:        user.ID,
-		Email:     user.Email,
-		Name:      user.Name,
-		AvatarURL: user.AvatarURL,
-		Provider:  user.Provider,
+		ID:         user.ID,
+		Email:      user.Email,
+		Name:       user.Name,
+		AvatarURL:  user.AvatarURL,
+		Provider:   user.Provider,
+		GlobalRole: user.GlobalRole,
 	})
 }

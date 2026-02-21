@@ -56,3 +56,16 @@ func (s *TemplateService) GetByID(ctx context.Context, id uuid.UUID) (*models.Pu
 	}
 	return &t, nil
 }
+
+func (s *TemplateService) Create(ctx context.Context, name, description, category string, data []byte) (*models.PublicTemplate, error) {
+	var t models.PublicTemplate
+	err := s.db.Pool.QueryRow(ctx, `
+		INSERT INTO public_templates (name, description, category, data)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, name, description, category, data, created_at, updated_at
+	`, name, description, category, data).Scan(&t.ID, &t.Name, &t.Description, &t.Category, &t.Data, &t.CreatedAt, &t.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}

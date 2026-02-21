@@ -143,7 +143,7 @@ func (s *WorkspaceService) CanModify(ctx context.Context, workspaceID, userID uu
 func (s *WorkspaceService) GetMembers(ctx context.Context, workspaceID uuid.UUID) ([]models.WorkspaceMember, error) {
 	rows, err := s.db.Pool.Query(ctx, `
 		SELECT wm.id, wm.workspace_id, wm.user_id, wm.role, wm.created_at,
-		       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+		       u.id, u.email, u.name, u.avatar_url, u.provider, u.global_role, u.created_at, u.updated_at
 		FROM workspace_members wm
 		JOIN users u ON wm.user_id = u.id
 		WHERE wm.workspace_id = $1
@@ -160,7 +160,7 @@ func (s *WorkspaceService) GetMembers(ctx context.Context, workspaceID uuid.UUID
 		var user models.User
 		if err := rows.Scan(
 			&member.ID, &member.WorkspaceID, &member.UserID, &member.Role, &member.CreatedAt,
-			&user.ID, &user.Email, &user.Name, &user.AvatarURL, &user.Provider, &user.CreatedAt, &user.UpdatedAt,
+			&user.ID, &user.Email, &user.Name, &user.AvatarURL, &user.Provider, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -280,7 +280,7 @@ func (s *WorkspaceService) GetUserPendingInvites(ctx context.Context, userID uui
 	rows, err := s.db.Pool.Query(ctx, `
 		SELECT wi.id, wi.workspace_id, wi.inviter_id, wi.invitee_id, wi.status, wi.created_at, wi.updated_at,
 		       w.id, w.name, w.owner_id, w.created_at, w.updated_at,
-		       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+		       u.id, u.email, u.name, u.avatar_url, u.provider, u.global_role, u.created_at, u.updated_at
 		FROM workspace_invites wi
 		JOIN workspaces w ON wi.workspace_id = w.id
 		JOIN users u ON wi.inviter_id = u.id
@@ -302,7 +302,7 @@ func (s *WorkspaceService) GetUserPendingInvites(ctx context.Context, userID uui
 			&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
 			&workspace.ID, &workspace.Name, &workspace.OwnerID, &workspace.CreatedAt, &workspace.UpdatedAt,
 			&inviter.ID, &inviter.Email, &inviter.Name, &inviter.AvatarURL,
-			&inviter.Provider, &inviter.CreatedAt, &inviter.UpdatedAt,
+			&inviter.Provider, &inviter.GlobalRole, &inviter.CreatedAt, &inviter.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -316,7 +316,7 @@ func (s *WorkspaceService) GetUserPendingInvites(ctx context.Context, userID uui
 func (s *WorkspaceService) GetWorkspacePendingInvites(ctx context.Context, workspaceID uuid.UUID) ([]models.WorkspaceInvite, error) {
 	rows, err := s.db.Pool.Query(ctx, `
 		SELECT wi.id, wi.workspace_id, wi.inviter_id, wi.invitee_id, wi.status, wi.created_at, wi.updated_at,
-		       u.id, u.email, u.name, u.avatar_url, u.provider, u.created_at, u.updated_at
+		       u.id, u.email, u.name, u.avatar_url, u.provider, u.global_role, u.created_at, u.updated_at
 		FROM workspace_invites wi
 		JOIN users u ON wi.invitee_id = u.id
 		WHERE wi.workspace_id = $1 AND wi.status = $2
@@ -335,7 +335,7 @@ func (s *WorkspaceService) GetWorkspacePendingInvites(ctx context.Context, works
 			&invite.ID, &invite.WorkspaceID, &invite.InviterID, &invite.InviteeID,
 			&invite.Status, &invite.CreatedAt, &invite.UpdatedAt,
 			&invitee.ID, &invitee.Email, &invitee.Name, &invitee.AvatarURL,
-			&invitee.Provider, &invitee.CreatedAt, &invitee.UpdatedAt,
+			&invitee.Provider, &invitee.GlobalRole, &invitee.CreatedAt, &invitee.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

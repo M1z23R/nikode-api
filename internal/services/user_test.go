@@ -44,8 +44,8 @@ func TestUserService_FindOrCreateFromOAuth_CreateNew(t *testing.T) {
 
 	// Insert new user
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, info.Email, info.Name, &info.AvatarURL, info.Provider, info.ID, now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, info.Email, info.Name, &info.AvatarURL, info.Provider, info.ID, "user", now, now)
 
 	mock.ExpectQuery(`INSERT INTO users`).
 		WithArgs(info.Email, info.Name, &info.AvatarURL, info.Provider, info.ID).
@@ -76,8 +76,8 @@ func TestUserService_FindOrCreateFromOAuth_FindExisting(t *testing.T) {
 
 	// User found
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, info.Email, info.Name, &avatarURL, info.Provider, info.ID, now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, info.Email, info.Name, &avatarURL, info.Provider, info.ID, "user", now, now)
 
 	mock.ExpectQuery(`SELECT .+ FROM users WHERE provider = .+ AND provider_id`).
 		WithArgs(info.Provider, info.ID).
@@ -106,8 +106,8 @@ func TestUserService_FindOrCreateFromOAuth_UpdateExisting(t *testing.T) {
 
 	// User found with different email/name
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, "old@example.com", "Old Name", nil, info.Provider, info.ID, now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, "old@example.com", "Old Name", nil, info.Provider, info.ID, "user", now, now)
 
 	mock.ExpectQuery(`SELECT .+ FROM users WHERE provider = .+ AND provider_id`).
 		WithArgs(info.Provider, info.ID).
@@ -135,8 +135,8 @@ func TestUserService_GetByID(t *testing.T) {
 	avatarURL := "https://example.com/avatar.png"
 
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, "test@example.com", "Test User", &avatarURL, "github", "123", now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, "test@example.com", "Test User", &avatarURL, "github", "123", "user", now, now)
 
 	mock.ExpectQuery(`SELECT .+ FROM users WHERE id`).
 		WithArgs(userID).
@@ -173,8 +173,8 @@ func TestUserService_GetByEmail(t *testing.T) {
 	now := time.Now()
 
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, email, "Test User", nil, "github", "123", now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, email, "Test User", nil, "github", "123", "user", now, now)
 
 	mock.ExpectQuery(`SELECT .+ FROM users WHERE email`).
 		WithArgs(email).
@@ -211,8 +211,8 @@ func TestUserService_Update(t *testing.T) {
 	now := time.Now()
 
 	rows := pgxmock.NewRows([]string{
-		"id", "email", "name", "avatar_url", "provider", "provider_id", "created_at", "updated_at",
-	}).AddRow(userID, "test@example.com", newName, nil, "github", "123", now, now)
+		"id", "email", "name", "avatar_url", "provider", "provider_id", "global_role", "created_at", "updated_at",
+	}).AddRow(userID, "test@example.com", newName, nil, "github", "123", "user", now, now)
 
 	mock.ExpectQuery(`UPDATE users SET name = .+ WHERE id`).
 		WithArgs(newName, userID).

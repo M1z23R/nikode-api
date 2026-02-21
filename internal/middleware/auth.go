@@ -3,14 +3,16 @@ package middleware
 import (
 	"strings"
 
-	"github.com/m1z23r/drift/pkg/drift"
+	"github.com/dimitrije/nikode-api/internal/models"
 	"github.com/dimitrije/nikode-api/internal/services"
 	"github.com/google/uuid"
+	"github.com/m1z23r/drift/pkg/drift"
 )
 
 const (
-	UserIDKey    = "user_id"
-	UserEmailKey = "user_email"
+	UserIDKey         = "user_id"
+	UserEmailKey      = "user_email"
+	UserGlobalRoleKey = "user_global_role"
 )
 
 func Auth(jwtService *services.JWTService) drift.HandlerFunc {
@@ -35,7 +37,19 @@ func Auth(jwtService *services.JWTService) drift.HandlerFunc {
 
 		c.Set(UserIDKey, claims.UserID)
 		c.Set(UserEmailKey, claims.Email)
+		c.Set(UserGlobalRoleKey, claims.GlobalRole)
 
+		c.Next()
+	}
+}
+
+func SuperAdmin() drift.HandlerFunc {
+	return func(c *drift.Context) {
+		role := GetUserGlobalRole(c)
+		if role != models.GlobalRoleSuperAdmin {
+			c.JSON(403, map[string]string{"error": "forbidden: super admin access required"})
+			return
+		}
 		c.Next()
 	}
 }
@@ -53,6 +67,15 @@ func GetUserEmail(c *drift.Context) string {
 	if email, ok := c.Get(UserEmailKey); ok {
 		if e, ok := email.(string); ok {
 			return e
+		}
+	}
+	return ""
+}
+
+func GetUserGlobalRole(c *drift.Context) string {
+	if role, ok := c.Get(UserGlobalRoleKey); ok {
+		if r, ok := role.(string); ok {
+			return r
 		}
 	}
 	return ""

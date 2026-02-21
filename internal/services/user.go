@@ -21,12 +21,12 @@ func NewUserService(db *database.DB) *UserService {
 func (s *UserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth.UserInfo) (*models.User, error) {
 	var user models.User
 	err := s.db.Pool.QueryRow(ctx, `
-		SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+		SELECT id, email, name, avatar_url, provider, provider_id, global_role, created_at, updated_at
 		FROM users
 		WHERE provider = $1 AND provider_id = $2
 	`, info.Provider, info.ID).Scan(
 		&user.ID, &user.Email, &user.Name, &user.AvatarURL,
-		&user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt,
+		&user.Provider, &user.ProviderID, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 	)
 
 	if err == nil {
@@ -47,10 +47,10 @@ func (s *UserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth.Use
 	err = s.db.Pool.QueryRow(ctx, `
 		INSERT INTO users (email, name, avatar_url, provider, provider_id)
 		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+		RETURNING id, email, name, avatar_url, provider, provider_id, global_role, created_at, updated_at
 	`, info.Email, info.Name, nullableString(info.AvatarURL), info.Provider, info.ID).Scan(
 		&user.ID, &user.Email, &user.Name, &user.AvatarURL,
-		&user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt,
+		&user.Provider, &user.ProviderID, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -63,11 +63,11 @@ func (s *UserService) FindOrCreateFromOAuth(ctx context.Context, info *oauth.Use
 func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user models.User
 	err := s.db.Pool.QueryRow(ctx, `
-		SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+		SELECT id, email, name, avatar_url, provider, provider_id, global_role, created_at, updated_at
 		FROM users WHERE id = $1
 	`, id).Scan(
 		&user.ID, &user.Email, &user.Name, &user.AvatarURL,
-		&user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt,
+		&user.Provider, &user.ProviderID, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -78,11 +78,11 @@ func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*models.User, 
 func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 	err := s.db.Pool.QueryRow(ctx, `
-		SELECT id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+		SELECT id, email, name, avatar_url, provider, provider_id, global_role, created_at, updated_at
 		FROM users WHERE email = $1
 	`, email).Scan(
 		&user.ID, &user.Email, &user.Name, &user.AvatarURL,
-		&user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt,
+		&user.Provider, &user.ProviderID, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -95,10 +95,10 @@ func (s *UserService) Update(ctx context.Context, id uuid.UUID, name string) (*m
 	err := s.db.Pool.QueryRow(ctx, `
 		UPDATE users SET name = $1, updated_at = NOW()
 		WHERE id = $2
-		RETURNING id, email, name, avatar_url, provider, provider_id, created_at, updated_at
+		RETURNING id, email, name, avatar_url, provider, provider_id, global_role, created_at, updated_at
 	`, name, id).Scan(
 		&user.ID, &user.Email, &user.Name, &user.AvatarURL,
-		&user.Provider, &user.ProviderID, &user.CreatedAt, &user.UpdatedAt,
+		&user.Provider, &user.ProviderID, &user.GlobalRole, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err

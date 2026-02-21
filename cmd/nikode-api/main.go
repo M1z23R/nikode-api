@@ -154,6 +154,12 @@ func main() {
 	api.Get("/templates", templateHandler.Search)
 	api.Get("/templates/:templateId", templateHandler.Get)
 
+	// Admin-only template management
+	admin := api.Group("/admin")
+	admin.Use(authmw.Auth(jwtService))
+	admin.Use(authmw.SuperAdmin())
+	admin.Post("/templates", templateHandler.Create)
+
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
 		for range ticker.C {

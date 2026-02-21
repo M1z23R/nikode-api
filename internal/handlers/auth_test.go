@@ -70,7 +70,7 @@ func TestAuthHandler_ExchangeCode_Success(t *testing.T) {
 	})
 
 	mockUserService.On("GetByID", mock.Anything, userID).Return(user, nil)
-	mockJWTService.On("GenerateTokenPair", userID, "test@example.com").Return(tokenPair, nil)
+	mockJWTService.On("GenerateTokenPair", userID, "test@example.com", mock.Anything).Return(tokenPair, nil)
 	mockJWTService.On("RefreshExpiry").Return(7 * 24 * time.Hour)
 	mockTokenService.On("StoreRefreshToken", mock.Anything, userID, mock.Anything, mock.Anything).Return(nil)
 
@@ -193,7 +193,7 @@ func TestAuthHandler_RefreshToken_Success(t *testing.T) {
 	mockTokenService.On("ValidateRefreshToken", mock.Anything, mock.Anything).Return(userID, nil)
 	mockUserService.On("GetByID", mock.Anything, userID).Return(user, nil)
 	mockTokenService.On("RevokeRefreshToken", mock.Anything, mock.Anything).Return(nil)
-	mockJWTService.On("GenerateTokenPair", userID, "test@example.com").Return(newTokenPair, nil)
+	mockJWTService.On("GenerateTokenPair", userID, "test@example.com", mock.Anything).Return(newTokenPair, nil)
 	mockJWTService.On("RefreshExpiry").Return(7 * 24 * time.Hour)
 	mockTokenService.On("StoreRefreshToken", mock.Anything, userID, mock.Anything, mock.Anything).Return(nil)
 

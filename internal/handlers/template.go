@@ -72,3 +72,36 @@ func (h *TemplateHandler) Get(c *drift.Context) {
 		Data:        template.Data,
 	})
 }
+
+func (h *TemplateHandler) Create(c *drift.Context) {
+	var req dto.CreateTemplateRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.BadRequest("invalid request body")
+		return
+	}
+
+	if req.Name == "" {
+		c.BadRequest("name is required")
+		return
+	}
+
+	if req.Data == nil {
+		c.BadRequest("data is required")
+		return
+	}
+
+	ctx := context.Background()
+	template, err := h.templateService.Create(ctx, req.Name, req.Description, req.Category, req.Data)
+	if err != nil {
+		c.InternalServerError("failed to create template")
+		return
+	}
+
+	_ = c.JSON(201, dto.TemplateDetail{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		Category:    template.Category,
+		Data:        template.Data,
+	})
+}

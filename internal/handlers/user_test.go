@@ -28,7 +28,7 @@ func newTestJWTService() *services.JWTService {
 
 func generateTestToken(t *testing.T, jwtSvc *services.JWTService, userID uuid.UUID, email string) string {
 	t.Helper()
-	pair, err := jwtSvc.GenerateTokenPair(userID, email)
+	pair, err := jwtSvc.GenerateTokenPair(userID, email, "user")
 	require.NoError(t, err)
 	return pair.AccessToken
 }

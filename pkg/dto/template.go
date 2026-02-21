@@ -20,3 +20,10 @@ type TemplateDetail struct {
 	Category    string          `json:"category"`
 	Data        json.RawMessage `json:"data"`
 }
+
+type CreateTemplateRequest struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Category    string          `json:"category"`
+	Data        json.RawMessage `json:"data"`
+}

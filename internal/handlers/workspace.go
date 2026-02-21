@@ -251,11 +251,12 @@ func (h *WorkspaceHandler) GetMembers(c *drift.Context) {
 			UserID: m.UserID,
 			Role:   m.Role,
 			User: dto.UserResponse{
-				ID:        m.User.ID,
-				Email:     m.User.Email,
-				Name:      m.User.Name,
-				AvatarURL: m.User.AvatarURL,
-				Provider:  m.User.Provider,
+				ID:         m.User.ID,
+				Email:      m.User.Email,
+				Name:       m.User.Name,
+				AvatarURL:  m.User.AvatarURL,
+				Provider:   m.User.Provider,
+				GlobalRole: m.User.GlobalRole,
 			},
 		}
 	}
@@ -450,11 +451,12 @@ func (h *WorkspaceHandler) GetWorkspaceInvites(c *drift.Context) {
 		}
 		if inv.Invitee != nil {
 			response[i].Invitee = &dto.UserResponse{
-				ID:        inv.Invitee.ID,
-				Email:     inv.Invitee.Email,
-				Name:      inv.Invitee.Name,
-				AvatarURL: inv.Invitee.AvatarURL,
-				Provider:  inv.Invitee.Provider,
+				ID:         inv.Invitee.ID,
+				Email:      inv.Invitee.Email,
+				Name:       inv.Invitee.Name,
+				AvatarURL:  inv.Invitee.AvatarURL,
+				Provider:   inv.Invitee.Provider,
+				GlobalRole: inv.Invitee.GlobalRole,
 			}
 		}
 	}
@@ -529,11 +531,12 @@ func (h *WorkspaceHandler) GetMyInvites(c *drift.Context) {
 		}
 		if inv.Inviter != nil {
 			response[i].Inviter = &dto.UserResponse{
-				ID:        inv.Inviter.ID,
-				Email:     inv.Inviter.Email,
-				Name:      inv.Inviter.Name,
-				AvatarURL: inv.Inviter.AvatarURL,
-				Provider:  inv.Inviter.Provider,
+				ID:         inv.Inviter.ID,
+				Email:      inv.Inviter.Email,
+				Name:       inv.Inviter.Name,
+				AvatarURL:  inv.Inviter.AvatarURL,
+				Provider:   inv.Inviter.Provider,
+				GlobalRole: inv.Inviter.GlobalRole,
 			}
 		}
 	}

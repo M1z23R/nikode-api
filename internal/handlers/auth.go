@@ -204,7 +204,7 @@ func (h *AuthHandler) ExchangeCode(c *drift.Context) {
 		return
 	}
 
-	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email)
+	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email, user.GlobalRole)
 	if err != nil {
 		c.InternalServerError("failed to generate tokens")
 		return
@@ -262,7 +262,7 @@ func (h *AuthHandler) RefreshToken(c *drift.Context) {
 		return
 	}
 
-	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email)
+	tokenPair, err := h.jwtService.GenerateTokenPair(user.ID, user.Email, user.GlobalRole)
 	if err != nil {
 		c.InternalServerError("failed to generate tokens")
 		return

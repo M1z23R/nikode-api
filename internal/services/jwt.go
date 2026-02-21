@@ -17,8 +17,9 @@ type JWTService struct {
 }
 
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
-	Email  string    `json:"email"`
+	UserID     uuid.UUID `json:"user_id"`
+	Email      string    `json:"email"`
+	GlobalRole string    `json:"global_role"`
 	jwt.RegisteredClaims
 }
 
@@ -36,12 +37,13 @@ func NewJWTService(secret string, accessExpiry, refreshExpiry time.Duration) *JW
 	}
 }
 
-func (s *JWTService) GenerateTokenPair(userID uuid.UUID, email string) (*TokenPair, error) {
+func (s *JWTService) GenerateTokenPair(userID uuid.UUID, email, globalRole string) (*TokenPair, error) {
 	now := time.Now()
 
 	accessClaims := Claims{
-		UserID: userID,
-		Email:  email,
+		UserID:     userID,
+		Email:      email,
+		GlobalRole: globalRole,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessExpiry)),
 			IssuedAt:  jwt.NewNumericDate(now),

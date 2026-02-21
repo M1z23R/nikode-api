@@ -218,6 +218,9 @@ var migrations = []string{
 	)`,
 
 	`CREATE INDEX IF NOT EXISTS idx_public_templates_name_search ON public_templates USING gin (name gin_trgm_ops)`,
+
+	// Migration: Add global_role column to users table
+	`ALTER TABLE users ADD COLUMN IF NOT EXISTS global_role VARCHAR(50) NOT NULL DEFAULT 'user'`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {

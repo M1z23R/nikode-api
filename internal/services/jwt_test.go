@@ -21,7 +21,7 @@ func TestJWTService_GenerateTokenPair(t *testing.T) {
 	userID := uuid.New()
 	email := "test@example.com"
 
-	pair, err := svc.GenerateTokenPair(userID, email)
+	pair, err := svc.GenerateTokenPair(userID, email, "user")
 
 	require.NoError(t, err)
 	assert.NotEmpty(t, pair.AccessToken)
@@ -34,7 +34,7 @@ func TestJWTService_ValidateAccessToken_Valid(t *testing.T) {
 	userID := uuid.New()
 	email := "test@example.com"
 
-	pair, err := svc.GenerateTokenPair(userID, email)
+	pair, err := svc.GenerateTokenPair(userID, email, "user")
 	require.NoError(t, err)
 
 	claims, err := svc.ValidateAccessToken(pair.AccessToken)
@@ -49,7 +49,7 @@ func TestJWTService_ValidateAccessToken_WrongSecret(t *testing.T) {
 	svc1 := NewJWTService("secret-1", 15*time.Minute, 24*time.Hour)
 	svc2 := NewJWTService("secret-2", 15*time.Minute, 24*time.Hour)
 
-	pair, err := svc1.GenerateTokenPair(uuid.New(), "test@example.com")
+	pair, err := svc1.GenerateTokenPair(uuid.New(), "test@example.com", "user")
 	require.NoError(t, err)
 
 	_, err = svc2.ValidateAccessToken(pair.AccessToken)
@@ -62,7 +62,7 @@ func TestJWTService_ValidateAccessToken_Expired(t *testing.T) {
 	// Create service with very short expiry
 	svc := NewJWTService("test-secret", 1*time.Millisecond, 24*time.Hour)
 
-	pair, err := svc.GenerateTokenPair(uuid.New(), "test@example.com")
+	pair, err := svc.GenerateTokenPair(uuid.New(), "test@example.com", "user")
 	require.NoError(t, err)
 
 	// Wait for token to expire
@@ -98,7 +98,7 @@ func TestJWTService_ValidateRefreshToken_Valid(t *testing.T) {
 	svc := NewJWTService("test-secret", 15*time.Minute, 24*time.Hour)
 	userID := uuid.New()
 
-	pair, err := svc.GenerateTokenPair(userID, "test@example.com")
+	pair, err := svc.GenerateTokenPair(userID, "test@example.com", "user")
 	require.NoError(t, err)
 
 	returnedUserID, err := svc.ValidateRefreshToken(pair.RefreshToken)
@@ -111,7 +111,7 @@ func TestJWTService_ValidateRefreshToken_WrongSecret(t *testing.T) {
 	svc1 := NewJWTService("secret-1", 15*time.Minute, 24*time.Hour)
 	svc2 := NewJWTService("secret-2", 15*time.Minute, 24*time.Hour)
 
-	pair, err := svc1.GenerateTokenPair(uuid.New(), "test@example.com")
+	pair, err := svc1.GenerateTokenPair(uuid.New(), "test@example.com", "user")
 	require.NoError(t, err)
 
 	_, err = svc2.ValidateRefreshToken(pair.RefreshToken)
@@ -122,7 +122,7 @@ func TestJWTService_ValidateRefreshToken_WrongSecret(t *testing.T) {
 func TestJWTService_ValidateRefreshToken_Expired(t *testing.T) {
 	svc := NewJWTService("test-secret", 15*time.Minute, 1*time.Millisecond)
 
-	pair, err := svc.GenerateTokenPair(uuid.New(), "test@example.com")
+	pair, err := svc.GenerateTokenPair(uuid.New(), "test@example.com", "user")
 	require.NoError(t, err)
 
 	time.Sleep(10 * time.Millisecond)
@@ -153,13 +153,13 @@ func TestJWTService_RefreshTokensAreDifferent(t *testing.T) {
 	svc := NewJWTService("test-secret", 15*time.Minute, 24*time.Hour)
 	userID := uuid.New()
 
-	pair1, err := svc.GenerateTokenPair(userID, "test@example.com")
+	pair1, err := svc.GenerateTokenPair(userID, "test@example.com", "user")
 	require.NoError(t, err)
 
 	// Wait a bit to ensure different timestamps
 	time.Sleep(5 * time.Millisecond)
 
-	pair2, err := svc.GenerateTokenPair(userID, "test@example.com")
+	pair2, err := svc.GenerateTokenPair(userID, "test@example.com", "user")
 	require.NoError(t, err)
 
 	// Refresh tokens should be different due to different JTI (unique ID)

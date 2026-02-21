@@ -65,7 +65,7 @@ type TokenServiceInterface interface {
 
 // JWTServiceInterface defines the methods used by handlers from JWTService
 type JWTServiceInterface interface {
-	GenerateTokenPair(userID uuid.UUID, email string) (*services.TokenPair, error)
+	GenerateTokenPair(userID uuid.UUID, email, globalRole string) (*services.TokenPair, error)
 	ValidateRefreshToken(token string) (uuid.UUID, error)
 	RefreshExpiry() time.Duration
 }
@@ -129,4 +129,5 @@ type OpenAPIServiceInterface interface {
 type TemplateServiceInterface interface {
 	Search(ctx context.Context, query string, limit int) ([]models.PublicTemplate, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.PublicTemplate, error)
+	Create(ctx context.Context, name, description, category string, data []byte) (*models.PublicTemplate, error)
 }

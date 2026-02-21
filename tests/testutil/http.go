@@ -25,8 +25,14 @@ func TestJWTService() *services.JWTService {
 // GenerateTestToken generates a valid JWT token for testing
 func GenerateTestToken(t *testing.T, userID uuid.UUID, email string) string {
 	t.Helper()
+	return GenerateTestTokenWithRole(t, userID, email, "user")
+}
+
+// GenerateTestTokenWithRole generates a valid JWT token with a specific role for testing
+func GenerateTestTokenWithRole(t *testing.T, userID uuid.UUID, email, globalRole string) string {
+	t.Helper()
 	jwtSvc := TestJWTService()
-	pair, err := jwtSvc.GenerateTokenPair(userID, email)
+	pair, err := jwtSvc.GenerateTokenPair(userID, email, globalRole)
 	if err != nil {
 		t.Fatalf("failed to generate test token: %v", err)
 	}
