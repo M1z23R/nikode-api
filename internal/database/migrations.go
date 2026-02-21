@@ -201,6 +201,21 @@ var migrations = []string{
 	)`,
 
 	`CREATE INDEX IF NOT EXISTS idx_vault_items_vault_id ON vault_items(vault_id)`,
+
+	// Public templates for collection creation
+	`CREATE EXTENSION IF NOT EXISTS pg_trgm`,
+
+	`CREATE TABLE IF NOT EXISTS public_templates (
+		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+		name VARCHAR(255) NOT NULL,
+		description TEXT,
+		category VARCHAR(100),
+		data JSONB NOT NULL DEFAULT '{}',
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+	)`,
+
+	`CREATE INDEX IF NOT EXISTS idx_public_templates_name_search ON public_templates USING gin (name gin_trgm_ops)`,
 }
 
 func (db *DB) Migrate(ctx context.Context) error {

@@ -46,6 +46,7 @@ func main() {
 	apiKeyService := services.NewAPIKeyService(db)
 	vaultService := services.NewVaultService(db)
 	openAPIService := services.NewOpenAPIService()
+	templateService := services.NewTemplateService(db)
 
 	h := hub.NewHub()
 	go h.Run()
@@ -60,6 +61,7 @@ func main() {
 	apiKeyHandler := handlers.NewAPIKeyHandler(apiKeyService, workspaceService)
 	vaultHandler := handlers.NewVaultHandler(vaultService, workspaceService)
 	automationHandler := handlers.NewAutomationHandler(collectionService, openAPIService)
+	templateHandler := handlers.NewTemplateHandler(templateService)
 
 	app := drift.New()
 
@@ -147,6 +149,10 @@ func main() {
 	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
 	app.Post("/invite/:inviteId/accept", inviteHandler.AcceptInvite)
 	app.Post("/invite/:inviteId/decline", inviteHandler.DeclineInvite)
+
+	// Public template routes (no auth required)
+	api.Get("/templates/search", templateHandler.Search)
+	api.Get("/templates/:templateId", templateHandler.Get)
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)

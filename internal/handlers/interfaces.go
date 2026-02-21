@@ -124,3 +124,9 @@ type OpenAPIServiceInterface interface {
 	ParseOpenAPI(content []byte) (any, error)
 	ConvertToNikode(spec any) (json.RawMessage, error)
 }
+
+// TemplateServiceInterface defines the methods used by handlers from TemplateService
+type TemplateServiceInterface interface {
+	Search(ctx context.Context, query string, limit int) ([]models.PublicTemplate, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.PublicTemplate, error)
+}
