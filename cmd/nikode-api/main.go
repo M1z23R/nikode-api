@@ -151,7 +151,7 @@ func main() {
 	app.Post("/invite/:inviteId/decline", inviteHandler.DeclineInvite)
 
 	// Public template routes (no auth required)
-	api.Get("/templates/search", templateHandler.Search)
+	api.Get("/templates", templateHandler.Search)
 	api.Get("/templates/:templateId", templateHandler.Get)
 
 	go func() {
