@@ -334,7 +334,7 @@ func (h *SyncHandler) handleGetChatHistory(conn *websocket.Conn, client *hub.Cli
 		}
 	}
 
-	_ = conn.WriteJSON(map[string]interface{}{
+	_ = conn.WriteJSON(map[string]any{
 		"type":         "chat_history",
 		"workspace_id": workspaceID.String(),
 		"messages":     messageData,

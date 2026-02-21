@@ -68,13 +68,13 @@ func (h *AuthHandler) cleanupStates() {
 	ticker := time.NewTicker(1 * time.Minute)
 	for range ticker.C {
 		now := time.Now()
-		h.states.Range(func(key, value interface{}) bool {
+		h.states.Range(func(key, value any) bool {
 			if sd, ok := value.(stateData); ok && now.After(sd.expiresAt) {
 				h.states.Delete(key)
 			}
 			return true
 		})
-		h.authCodes.Range(func(key, value interface{}) bool {
+		h.authCodes.Range(func(key, value any) bool {
 			if acd, ok := value.(authCodeData); ok && now.After(acd.expiresAt) {
 				h.authCodes.Delete(key)
 			}

@@ -79,7 +79,7 @@ func (s *OpenAPIService) ParseOpenAPI(content []byte) (any, error) {
 	spec, err := loader.LoadFromData(content)
 	if err != nil {
 		// Try YAML parsing by converting to JSON first
-		var yamlData interface{}
+		var yamlData any
 		if yamlErr := yaml.Unmarshal(content, &yamlData); yamlErr != nil {
 			return nil, fmt.Errorf("failed to parse OpenAPI spec: %w", err)
 		}

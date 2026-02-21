@@ -50,7 +50,7 @@ func NewHTTPTestClient(t *testing.T, handler http.Handler) *HTTPTestClient {
 }
 
 // Request makes an HTTP request and returns the response
-func (c *HTTPTestClient) Request(method, path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder {
+func (c *HTTPTestClient) Request(method, path string, body any, headers map[string]string) *httptest.ResponseRecorder {
 	c.t.Helper()
 
 	var bodyReader io.Reader
@@ -82,12 +82,12 @@ func (c *HTTPTestClient) GET(path string, headers map[string]string) *httptest.R
 }
 
 // POST makes a POST request
-func (c *HTTPTestClient) POST(path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder {
+func (c *HTTPTestClient) POST(path string, body any, headers map[string]string) *httptest.ResponseRecorder {
 	return c.Request(http.MethodPost, path, body, headers)
 }
 
 // PATCH makes a PATCH request
-func (c *HTTPTestClient) PATCH(path string, body interface{}, headers map[string]string) *httptest.ResponseRecorder {
+func (c *HTTPTestClient) PATCH(path string, body any, headers map[string]string) *httptest.ResponseRecorder {
 	return c.Request(http.MethodPatch, path, body, headers)
 }
 
@@ -97,7 +97,7 @@ func (c *HTTPTestClient) DELETE(path string, headers map[string]string) *httptes
 }
 
 // ParseJSON parses the response body as JSON
-func ParseJSON(t *testing.T, rec *httptest.ResponseRecorder, v interface{}) {
+func ParseJSON(t *testing.T, rec *httptest.ResponseRecorder, v any) {
 	t.Helper()
 	if err := json.NewDecoder(rec.Body).Decode(v); err != nil {
 		t.Fatalf("failed to parse response JSON: %v", err)
@@ -113,9 +113,9 @@ func AssertStatus(t *testing.T, rec *httptest.ResponseRecorder, expected int) {
 }
 
 // AssertJSON asserts that the response contains expected JSON fields
-func AssertJSON(t *testing.T, rec *httptest.ResponseRecorder, expected map[string]interface{}) {
+func AssertJSON(t *testing.T, rec *httptest.ResponseRecorder, expected map[string]any) {
 	t.Helper()
-	var actual map[string]interface{}
+	var actual map[string]any
 	if err := json.NewDecoder(rec.Body).Decode(&actual); err != nil {
 		t.Fatalf("failed to parse response JSON: %v", err)
 	}

@@ -26,9 +26,9 @@ var (
 )
 
 type Event struct {
-	Type        string      `json:"type"`
-	WorkspaceID *uuid.UUID  `json:"workspace_id,omitempty"`
-	Data        interface{} `json:"data,omitempty"`
+	Type        string     `json:"type"`
+	WorkspaceID *uuid.UUID `json:"workspace_id,omitempty"`
+	Data        any        `json:"data,omitempty"`
 }
 
 type CollectionCreatedData struct {
@@ -592,7 +592,7 @@ func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 		keyExchangeEvent := Event{
 			Type:        "key_exchange_needed",
 			WorkspaceID: &workspaceID,
-			Data: map[string]interface{}{
+			Data: map[string]any{
 				"user_id":    newClient.UserID,
 				"user_name":  newClient.UserName,
 				"public_key": newClient.PublicKey,
@@ -617,7 +617,7 @@ func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 	workspaceKeysEvent := Event{
 		Type:        "workspace_keys",
 		WorkspaceID: &workspaceID,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"members": existingMembers,
 		},
 	}
@@ -636,7 +636,7 @@ func (h *Hub) RelayEncryptedKey(targetUserID uuid.UUID, fromUserID uuid.UUID, wo
 	event := Event{
 		Type:        "workspace_key",
 		WorkspaceID: &workspaceID,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"from_user_id":  fromUserID,
 			"encrypted_key": encryptedKey,
 		},
