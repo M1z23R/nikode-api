@@ -28,6 +28,11 @@ var migrations = []string{
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 	)`,
 
+	// Ensure owner_id exists for databases created with older schema versions
+	// This MUST come immediately after CREATE TABLE workspaces to prevent failures
+	// in subsequent migrations that reference owner_id
+	`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE CASCADE`,
+
 	`CREATE TABLE IF NOT EXISTS workspace_members (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
@@ -74,10 +79,7 @@ var migrations = []string{
 	`CREATE INDEX IF NOT EXISTS idx_collections_workspace_id ON collections(workspace_id)`,
 	`CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)`,
 
-	// Migration: Add owner_id column if it doesn't exist (for existing databases)
-	`ALTER TABLE workspaces ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE CASCADE`,
-
-	// Migration: Index owner_id (must be after the ADD COLUMN for existing databases)
+	// Migration: Index owner_id
 	`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id)`,
 
 	// Migration: Populate owner_id from user_id for personal workspaces
