@@ -105,3 +105,19 @@ func (h *TemplateHandler) Create(c *drift.Context) {
 		Data:        template.Data,
 	})
 }
+
+func (h *TemplateHandler) Delete(c *drift.Context) {
+	templateID, err := uuid.Parse(c.Param("templateId"))
+	if err != nil {
+		c.BadRequest("invalid template id")
+		return
+	}
+
+	ctx := context.Background()
+	if err := h.templateService.Delete(ctx, templateID); err != nil {
+		c.InternalServerError("failed to delete template")
+		return
+	}
+
+	_ = c.JSON(200, map[string]string{"message": "template deleted"})
+}

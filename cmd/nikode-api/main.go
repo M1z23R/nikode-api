@@ -159,6 +159,7 @@ func main() {
 	admin.Use(authmw.Auth(jwtService))
 	admin.Use(authmw.SuperAdmin())
 	admin.Post("/templates", templateHandler.Create)
+	admin.Delete("/templates/:templateId", templateHandler.Delete)
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)

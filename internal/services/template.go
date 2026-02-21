@@ -69,3 +69,8 @@ func (s *TemplateService) Create(ctx context.Context, name, description, categor
 	}
 	return &t, nil
 }
+
+func (s *TemplateService) Delete(ctx context.Context, id uuid.UUID) error {
+	_, err := s.db.Pool.Exec(ctx, `DELETE FROM public_templates WHERE id = $1`, id)
+	return err
+}

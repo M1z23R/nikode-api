@@ -130,4 +130,5 @@ type TemplateServiceInterface interface {
 	Search(ctx context.Context, query string, limit int) ([]models.PublicTemplate, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.PublicTemplate, error)
 	Create(ctx context.Context, name, description, category string, data []byte) (*models.PublicTemplate, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }

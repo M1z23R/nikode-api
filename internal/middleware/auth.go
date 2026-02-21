@@ -47,7 +47,7 @@ func SuperAdmin() drift.HandlerFunc {
 	return func(c *drift.Context) {
 		role := GetUserGlobalRole(c)
 		if role != models.GlobalRoleSuperAdmin {
-			c.JSON(403, map[string]string{"error": "forbidden: super admin access required"})
+			c.Forbidden("super admin access required")
 			return
 		}
 		c.Next()
