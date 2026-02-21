@@ -3,6 +3,7 @@ package hub
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -24,6 +25,31 @@ var (
 	ErrNotSubscribed    = errors.New("not subscribed to workspace")
 	ErrInvalidPublicKey = errors.New("invalid public key")
 )
+
+// Tunnel types
+type TunnelInfo struct {
+	Subdomain string
+	LocalPort int
+	Client    *Client
+	UserID    uuid.UUID
+}
+
+type TunnelRequest struct {
+	ID        string            `json:"id"`
+	Subdomain string            `json:"subdomain"`
+	Method    string            `json:"method"`
+	Path      string            `json:"path"`
+	Headers   map[string]string `json:"headers"`
+	Body      string            `json:"body"` // base64
+}
+
+type TunnelResponse struct {
+	ID         string            `json:"id"`
+	StatusCode int               `json:"status_code"`
+	Headers    map[string]string `json:"headers"`
+	Body       string            `json:"body"` // base64
+	Error      string            `json:"error,omitempty"`
+}
 
 type Event struct {
 	Type        string     `json:"type"`
@@ -227,9 +253,14 @@ type Hub struct {
 	chatMu          sync.RWMutex
 
 	// E2E Key Exchange
-	publicKeys        map[uuid.UUID]string              // userID -> publicKey
-	workspaceKeyHolders map[uuid.UUID]map[uuid.UUID]bool // workspaceID -> set of userIDs who have the key
-	keysMu            sync.RWMutex
+	publicKeys          map[uuid.UUID]string               // userID -> publicKey
+	workspaceKeyHolders map[uuid.UUID]map[uuid.UUID]bool   // workspaceID -> set of userIDs who have the key
+	keysMu              sync.RWMutex
+
+	// Tunnels
+	tunnels         map[string]*TunnelInfo          // subdomain -> tunnel info
+	pendingRequests map[string]chan *TunnelResponse // requestID -> response channel
+	tunnelMu        sync.RWMutex
 }
 
 type WorkspaceMessage struct {
@@ -259,6 +290,8 @@ func NewHub() *Hub {
 		chatRateLimiter:     NewChatRateLimiter(RateLimitMessages, RateLimitWindow),
 		publicKeys:          make(map[uuid.UUID]string),
 		workspaceKeyHolders: make(map[uuid.UUID]map[uuid.UUID]bool),
+		tunnels:             make(map[string]*TunnelInfo),
+		pendingRequests:     make(map[string]chan *TunnelResponse),
 	}
 }
 
@@ -281,6 +314,9 @@ func (h *Hub) Run() {
 				delete(h.clients, client.ID)
 				close(client.Send)
 				h.mu.Unlock()
+
+				// Clean up any tunnels this client had
+				h.UnregisterClientTunnels(client.ID)
 
 				// Broadcast presence updates for all workspaces this client was in
 				for _, wsID := range workspaces {
@@ -751,4 +787,122 @@ func (h *Hub) IsSubscribedToWorkspace(clientID string, workspaceID uuid.UUID) bo
 		return false
 	}
 	return client.Workspaces[workspaceID]
+}
+
+// RegisterTunnel registers a new tunnel for a subdomain
+func (h *Hub) RegisterTunnel(subdomain string, localPort int, client *Client, userID uuid.UUID) error {
+	h.tunnelMu.Lock()
+	defer h.tunnelMu.Unlock()
+
+	if _, exists := h.tunnels[subdomain]; exists {
+		return fmt.Errorf("subdomain already in use")
+	}
+
+	h.tunnels[subdomain] = &TunnelInfo{
+		Subdomain: subdomain,
+		LocalPort: localPort,
+		Client:    client,
+		UserID:    userID,
+	}
+	return nil
+}
+
+// UnregisterTunnel removes a tunnel
+func (h *Hub) UnregisterTunnel(subdomain string) {
+	h.tunnelMu.Lock()
+	defer h.tunnelMu.Unlock()
+	delete(h.tunnels, subdomain)
+}
+
+// UnregisterClientTunnels removes all tunnels for a client (called on disconnect)
+func (h *Hub) UnregisterClientTunnels(clientID string) []string {
+	h.tunnelMu.Lock()
+	defer h.tunnelMu.Unlock()
+
+	var removed []string
+	for subdomain, info := range h.tunnels {
+		if info.Client.ID == clientID {
+			delete(h.tunnels, subdomain)
+			removed = append(removed, subdomain)
+		}
+	}
+	return removed
+}
+
+// GetTunnel returns tunnel info by subdomain
+func (h *Hub) GetTunnel(subdomain string) (*TunnelInfo, bool) {
+	h.tunnelMu.RLock()
+	defer h.tunnelMu.RUnlock()
+	info, ok := h.tunnels[subdomain]
+	return info, ok
+}
+
+// IsSubdomainAvailable checks if a subdomain is available
+func (h *Hub) IsSubdomainAvailable(subdomain string) bool {
+	h.tunnelMu.RLock()
+	defer h.tunnelMu.RUnlock()
+	_, exists := h.tunnels[subdomain]
+	return !exists
+}
+
+// SendTunnelRequest sends a request to tunnel client and waits for response
+func (h *Hub) SendTunnelRequest(subdomain string, req *TunnelRequest) (*TunnelResponse, error) {
+	h.tunnelMu.RLock()
+	info, ok := h.tunnels[subdomain]
+	h.tunnelMu.RUnlock()
+
+	if !ok {
+		return nil, fmt.Errorf("tunnel not found")
+	}
+
+	// Create response channel
+	respChan := make(chan *TunnelResponse, 1)
+	h.tunnelMu.Lock()
+	h.pendingRequests[req.ID] = respChan
+	h.tunnelMu.Unlock()
+
+	defer func() {
+		h.tunnelMu.Lock()
+		delete(h.pendingRequests, req.ID)
+		h.tunnelMu.Unlock()
+	}()
+
+	// Send request to client
+	msg, _ := json.Marshal(map[string]interface{}{
+		"type":      "tunnel_request",
+		"id":        req.ID,
+		"subdomain": subdomain,
+		"method":    req.Method,
+		"path":      req.Path,
+		"headers":   req.Headers,
+		"body":      req.Body,
+	})
+
+	select {
+	case info.Client.Send <- msg:
+	default:
+		return nil, fmt.Errorf("client buffer full")
+	}
+
+	// Wait for response with timeout
+	select {
+	case resp := <-respChan:
+		return resp, nil
+	case <-time.After(30 * time.Second):
+		return nil, fmt.Errorf("timeout waiting for response")
+	}
+}
+
+// HandleTunnelResponse routes a tunnel response to the waiting request
+func (h *Hub) HandleTunnelResponse(resp *TunnelResponse) {
+	h.tunnelMu.RLock()
+	respChan, ok := h.pendingRequests[resp.ID]
+	h.tunnelMu.RUnlock()
+
+	if ok {
+		select {
+		case respChan <- resp:
+		default:
+		}
+	}
 }

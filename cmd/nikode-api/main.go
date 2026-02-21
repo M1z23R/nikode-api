@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -62,6 +63,8 @@ func main() {
 	vaultHandler := handlers.NewVaultHandler(vaultService, workspaceService)
 	automationHandler := handlers.NewAutomationHandler(collectionService, openAPIService)
 	templateHandler := handlers.NewTemplateHandler(templateService)
+	webhookHandler := handlers.NewWebhookHandler(h)
+	tunnelHandler := handlers.NewTunnelHandler(h, jwtService)
 
 	app := drift.New()
 
@@ -70,6 +73,15 @@ func main() {
 	} else {
 		app.SetMode(drift.DebugMode)
 	}
+
+	// Webhook tunnel middleware - must be before other middleware
+	app.Use(func(c *drift.Context) {
+		if strings.Contains(c.Request.Host, ".webhook.nikode.dimitrije.dev") {
+			webhookHandler.HandleIncoming(c)
+			return
+		}
+		c.Next()
+	})
 
 	app.Use(middleware.Recovery())
 	app.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -144,6 +156,7 @@ func main() {
 
 	api.Get("/ws", pingPongHandler.Connect)
 	api.Get("/sync", syncHandler.Connect)
+	api.Get("/tunnel", tunnelHandler.Connect)
 
 	// Public invite pages (no auth required)
 	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
