@@ -170,6 +170,8 @@ func (h *SyncHandler) Connect(c *drift.Context) {
 				h.handleGetChatHistory(conn, client, msg)
 			case "share_workspace_key":
 				h.handleShareWorkspaceKey(conn, client, msg)
+			case "key_ready":
+				h.handleKeyReady(conn, client, msg)
 			default:
 				_ = conn.WriteJSON(map[string]string{
 					"type":       "error",
@@ -385,5 +387,33 @@ func (h *SyncHandler) handleShareWorkspaceKey(conn *websocket.Conn, client *hub.
 
 	_ = conn.WriteJSON(map[string]string{
 		"type": "workspace_key_shared",
+	})
+}
+
+func (h *SyncHandler) handleKeyReady(conn *websocket.Conn, client *hub.Client, msg ClientMessage) {
+	workspaceID, err := uuid.Parse(msg.WorkspaceID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "invalid workspace_id",
+			"ref_action": "key_ready",
+		})
+		return
+	}
+
+	// Check if subscribed
+	if !h.hub.IsSubscribedToWorkspace(client.ID, workspaceID) {
+		_ = conn.WriteJSON(map[string]string{
+			"type":       "error",
+			"message":    "not subscribed to workspace",
+			"ref_action": "key_ready",
+		})
+		return
+	}
+
+	h.hub.MarkKeyReady(client.UserID, workspaceID)
+
+	_ = conn.WriteJSON(map[string]string{
+		"type": "key_ready_confirmed",
 	})
 }

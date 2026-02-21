@@ -227,8 +227,9 @@ type Hub struct {
 	chatMu          sync.RWMutex
 
 	// E2E Key Exchange
-	publicKeys map[uuid.UUID]string // userID -> publicKey
-	keysMu     sync.RWMutex
+	publicKeys        map[uuid.UUID]string              // userID -> publicKey
+	workspaceKeyHolders map[uuid.UUID]map[uuid.UUID]bool // workspaceID -> set of userIDs who have the key
+	keysMu            sync.RWMutex
 }
 
 type WorkspaceMessage struct {
@@ -248,15 +249,16 @@ type WorkspacesChangedData struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		clients:         make(map[string]*Client),
-		register:        make(chan *Client),
-		unregister:      make(chan *Client),
-		broadcast:       make(chan *WorkspaceMessage, 256),
-		userBroadcast:   make(chan *UserMessage, 256),
-		chatBroadcast:   make(chan *ChatBroadcastMessage, 256),
-		chatHistory:     make(map[uuid.UUID]*MessageRingBuffer),
-		chatRateLimiter: NewChatRateLimiter(RateLimitMessages, RateLimitWindow),
-		publicKeys:      make(map[uuid.UUID]string),
+		clients:             make(map[string]*Client),
+		register:            make(chan *Client),
+		unregister:          make(chan *Client),
+		broadcast:           make(chan *WorkspaceMessage, 256),
+		userBroadcast:       make(chan *UserMessage, 256),
+		chatBroadcast:       make(chan *ChatBroadcastMessage, 256),
+		chatHistory:         make(map[uuid.UUID]*MessageRingBuffer),
+		chatRateLimiter:     NewChatRateLimiter(RateLimitMessages, RateLimitWindow),
+		publicKeys:          make(map[uuid.UUID]string),
+		workspaceKeyHolders: make(map[uuid.UUID]map[uuid.UUID]bool),
 	}
 }
 
@@ -583,25 +585,36 @@ func (h *Hub) GetWorkspacePublicKeys(workspaceID uuid.UUID) []PublicKeyInfo {
 	return keys
 }
 
-// triggerKeyExchange notifies existing members about a new subscriber and sends workspace keys to the new subscriber
+// triggerKeyExchange orchestrates key exchange when a new user joins a workspace
 func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 	h.mu.RLock()
-	defer h.mu.RUnlock()
+	h.keysMu.RLock()
 
-	// Collect existing members with public keys
-	var existingMembers []PublicKeyInfo
-	for _, client := range h.clients {
-		if client.Workspaces[workspaceID] && client.ID != newClient.ID && client.PublicKey != "" {
-			existingMembers = append(existingMembers, PublicKeyInfo{
-				UserID:    client.UserID,
-				UserName:  client.UserName,
-				PublicKey: client.PublicKey,
-			})
+	// Find an online key holder for this workspace
+	keyHolders := h.workspaceKeyHolders[workspaceID]
+	var selectedKeyHolder *Client
+
+	if keyHolders != nil {
+		// Find a key holder who is currently online and subscribed to this workspace
+		for _, client := range h.clients {
+			if client.ID != newClient.ID &&
+			   client.Workspaces[workspaceID] &&
+			   client.PublicKey != "" &&
+			   keyHolders[client.UserID] {
+				selectedKeyHolder = client
+				break
+			}
 		}
 	}
 
-	// Notify existing members about the new subscriber
-	if newClient.PublicKey != "" {
+	h.keysMu.RUnlock()
+	h.mu.RUnlock()
+
+	// Determine if new user should generate key or wait for it
+	shouldGenerate := selectedKeyHolder == nil
+
+	// If there's a key holder, ask them to share the key with the new user
+	if selectedKeyHolder != nil && newClient.PublicKey != "" {
 		keyExchangeEvent := Event{
 			Type:        "key_exchange_needed",
 			WorkspaceID: &workspaceID,
@@ -612,26 +625,18 @@ func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 			},
 		}
 		data, _ := json.Marshal(keyExchangeEvent)
-
-		for _, client := range h.clients {
-			if client.Workspaces[workspaceID] && client.ID != newClient.ID {
-				select {
-				case client.Send <- data:
-				default:
-				}
-			}
+		select {
+		case selectedKeyHolder.Send <- data:
+		default:
 		}
 	}
 
-	// Send existing members' keys to the new subscriber
-	if existingMembers == nil {
-		existingMembers = []PublicKeyInfo{}
-	}
+	// Tell the new user whether to generate a key or wait
 	workspaceKeysEvent := Event{
 		Type:        "workspace_keys",
 		WorkspaceID: &workspaceID,
 		Data: map[string]any{
-			"members": existingMembers,
+			"should_generate": shouldGenerate,
 		},
 	}
 	data, _ := json.Marshal(workspaceKeysEvent)
@@ -639,6 +644,17 @@ func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 	case newClient.Send <- data:
 	default:
 	}
+}
+
+// MarkKeyReady marks a user as having the workspace key
+func (h *Hub) MarkKeyReady(userID uuid.UUID, workspaceID uuid.UUID) {
+	h.keysMu.Lock()
+	defer h.keysMu.Unlock()
+
+	if h.workspaceKeyHolders[workspaceID] == nil {
+		h.workspaceKeyHolders[workspaceID] = make(map[uuid.UUID]bool)
+	}
+	h.workspaceKeyHolders[workspaceID][userID] = true
 }
 
 // RelayEncryptedKey relays an encrypted symmetric key from one user to another

@@ -93,6 +93,7 @@ type HubInterface interface {
 	SetPublicKey(clientID string, publicKey string)
 	GetWorkspacePublicKeys(workspaceID uuid.UUID) []hub.PublicKeyInfo
 	RelayEncryptedKey(targetUserID uuid.UUID, fromUserID uuid.UUID, workspaceID uuid.UUID, encryptedKey string)
+	MarkKeyReady(userID uuid.UUID, workspaceID uuid.UUID)
 }
 
 // EmailServiceInterface defines the methods used by handlers from EmailService

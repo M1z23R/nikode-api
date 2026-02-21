@@ -388,6 +388,10 @@ func (m *MockHub) RelayEncryptedKey(targetUserID uuid.UUID, fromUserID uuid.UUID
 	m.Called(targetUserID, fromUserID, workspaceID, encryptedKey)
 }
 
+func (m *MockHub) MarkKeyReady(userID uuid.UUID, workspaceID uuid.UUID) {
+	m.Called(userID, workspaceID)
+}
+
 // MockEmailService mocks the EmailService
 type MockEmailService struct {
 	mock.Mock
