@@ -86,7 +86,7 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 }
 
 func extractSubdomain(host string) string {
-	// host: "abc123.webhook.nikode.dimitrije.dev" or "abc123.webhook.nikode.dimitrije.dev:443"
+	// host: "abc123.webhooks.nikode.dimitrije.dev" or "abc123.webhook.nikode.dimitrije.dev:443"
 	host = strings.Split(host, ":")[0]
 	suffix := ".webhooks.nikode.dimitrije.dev"
 	if !strings.HasSuffix(host, suffix) {
