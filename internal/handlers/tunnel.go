@@ -199,7 +199,7 @@ func (h *TunnelHandler) handleRegister(conn *websocket.Conn, client *hub.Client,
 	_ = conn.WriteJSON(map[string]any{
 		"type":       "registered",
 		"subdomain":  subdomain,
-		"url":        fmt.Sprintf("https://%s.webhook.nikode.dimitrije.dev", subdomain),
+		"url":        fmt.Sprintf("https://%s.webhooks.nikode.dimitrije.dev", subdomain),
 		"local_port": msg.LocalPort,
 	})
 }
