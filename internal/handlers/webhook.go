@@ -26,21 +26,21 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 	}
 	subdomain := extractSubdomain(host)
 	if subdomain == "" {
-		_ = c.JSON(400, map[string]string{"error": "invalid subdomain"})
+		c.BadRequest("invalid subdomain")
 		return
 	}
 
 	// Check if tunnel exists
 	_, ok := h.hub.GetTunnel(subdomain)
 	if !ok {
-		_ = c.JSON(404, map[string]string{"error": "tunnel not found"})
+		c.NotFound("tunnel not found")
 		return
 	}
 
 	// Read request body
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		_ = c.JSON(400, map[string]string{"error": "failed to read body"})
+		c.BadRequest("failed to read body")
 		return
 	}
 
@@ -65,12 +65,12 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 	// Send request and wait for response
 	resp, err := h.hub.SendTunnelRequest(subdomain, req)
 	if err != nil {
-		_ = c.JSON(504, map[string]string{"error": err.Error()})
+		c.GatewayTimeout(err.Error())
 		return
 	}
 
 	if resp.Error != "" {
-		_ = c.JSON(502, map[string]string{"error": resp.Error})
+		c.BadGateway(resp.Error)
 		return
 	}
 
@@ -83,6 +83,7 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 	respBody, _ := base64.StdEncoding.DecodeString(resp.Body)
 	c.Response.WriteHeader(resp.StatusCode)
 	_, _ = c.Response.Write(respBody)
+	c.Abort()
 }
 
 func extractSubdomain(host string) string {
