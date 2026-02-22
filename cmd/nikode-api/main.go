@@ -76,7 +76,11 @@ func main() {
 
 	// Webhook tunnel middleware - must be before other middleware
 	app.Use(func(c *drift.Context) {
-		if strings.Contains(c.Request.Host, ".webhook.nikode.dimitrije.dev") {
+		host := c.Request.Host
+		if fwdHost := c.Request.Header.Get("X-Forwarded-Host"); fwdHost != "" {
+			host = fwdHost
+		}
+		if strings.Contains(host, ".webhook.nikode.dimitrije.dev") {
 			webhookHandler.HandleIncoming(c)
 			return
 		}

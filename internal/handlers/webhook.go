@@ -19,8 +19,11 @@ func NewWebhookHandler(h *hub.Hub) *WebhookHandler {
 }
 
 func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
-	// Extract subdomain from Host header
+	// Extract subdomain from Host header (with proxy support)
 	host := c.Request.Host
+	if fwdHost := c.Request.Header.Get("X-Forwarded-Host"); fwdHost != "" {
+		host = fwdHost
+	}
 	subdomain := extractSubdomain(host)
 	if subdomain == "" {
 		_ = c.JSON(400, map[string]string{"error": "invalid subdomain"})
