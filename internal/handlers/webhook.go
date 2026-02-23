@@ -81,6 +81,7 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 	// (Content-Length will be set correctly by Go's HTTP server based on actual body size)
 	skipHeaders := map[string]bool{
 		"content-length":           true,
+		"content-encoding":        true,
 		"transfer-encoding":       true,
 		"connection":              true,
 		"keep-alive":              true,
