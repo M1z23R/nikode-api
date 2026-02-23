@@ -74,13 +74,31 @@ func (h *WebhookHandler) HandleIncoming(c *drift.Context) {
 		return
 	}
 
-	// Write response headers
+	// Decode response body first so we know the actual length
+	respBody, _ := base64.StdEncoding.DecodeString(resp.Body)
+
+	// Headers to skip: hop-by-hop headers and Content-Length
+	// (Content-Length will be set correctly by Go's HTTP server based on actual body size)
+	skipHeaders := map[string]bool{
+		"content-length":           true,
+		"transfer-encoding":       true,
+		"connection":              true,
+		"keep-alive":              true,
+		"proxy-authenticate":      true,
+		"proxy-authorization":     true,
+		"te":                      true,
+		"trailer":                 true,
+		"upgrade":                 true,
+	}
+
+	// Write response headers (excluding hop-by-hop and Content-Length)
 	for key, value := range resp.Headers {
-		c.Response.Header().Set(key, value)
+		if !skipHeaders[strings.ToLower(key)] {
+			c.Response.Header().Set(key, value)
+		}
 	}
 
 	// Write response body
-	respBody, _ := base64.StdEncoding.DecodeString(resp.Body)
 	c.Response.WriteHeader(resp.StatusCode)
 	_, _ = c.Response.Write(respBody)
 	c.Abort()
