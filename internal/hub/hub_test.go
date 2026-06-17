@@ -745,3 +745,71 @@ func drainChannel(ch chan []byte, timeout time.Duration) {
 		}
 	}
 }
+
+func TestHub_RegisterWebhook_PushesWebhookRequestType(t *testing.T) {
+	hub := NewHub()
+
+	client := &Client{
+		ID:         "wh-client-1",
+		UserID:     uuid.New(),
+		Workspaces: make(map[uuid.UUID]bool),
+		Send:       make(chan []byte, 256),
+	}
+
+	err := hub.RegisterWebhook("wh-abc", client, client.UserID)
+	require.NoError(t, err)
+
+	info, ok := hub.GetTunnel("wh-abc")
+	require.True(t, ok)
+	assert.Equal(t, "webhook_request", info.RequestType)
+
+	go func() {
+		_, _ = hub.SendTunnelRequest("wh-abc", &TunnelRequest{
+			ID:        "req-1",
+			Subdomain: "wh-abc",
+			Method:    "POST",
+			Path:      "/hook",
+			Headers:   map[string]string{"x": "y"},
+			Body:      "",
+		})
+	}()
+
+	select {
+	case raw := <-client.Send:
+		var pushed map[string]any
+		require.NoError(t, json.Unmarshal(raw, &pushed))
+		assert.Equal(t, "webhook_request", pushed["type"])
+		assert.Equal(t, "req-1", pushed["id"])
+		hub.HandleTunnelResponse(&TunnelResponse{ID: "req-1", StatusCode: 200})
+	case <-time.After(time.Second):
+		t.Fatal("expected a webhook_request to be pushed to the client")
+	}
+}
+
+func TestHub_RegisterTunnel_StillPushesTunnelRequestType(t *testing.T) {
+	hub := NewHub()
+
+	client := &Client{
+		ID:         "tn-client-1",
+		UserID:     uuid.New(),
+		Workspaces: make(map[uuid.UUID]bool),
+		Send:       make(chan []byte, 256),
+	}
+
+	err := hub.RegisterTunnel("tn-abc", 3000, client, client.UserID)
+	require.NoError(t, err)
+
+	go func() {
+		_, _ = hub.SendTunnelRequest("tn-abc", &TunnelRequest{ID: "req-2", Subdomain: "tn-abc", Method: "GET", Path: "/"})
+	}()
+
+	select {
+	case raw := <-client.Send:
+		var pushed map[string]any
+		require.NoError(t, json.Unmarshal(raw, &pushed))
+		assert.Equal(t, "tunnel_request", pushed["type"])
+		hub.HandleTunnelResponse(&TunnelResponse{ID: "req-2", StatusCode: 200})
+	case <-time.After(time.Second):
+		t.Fatal("expected a tunnel_request to be pushed to the client")
+	}
+}

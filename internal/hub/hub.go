@@ -28,10 +28,11 @@ var (
 
 // Tunnel types
 type TunnelInfo struct {
-	Subdomain string
-	LocalPort int
-	Client    *Client
-	UserID    uuid.UUID
+	Subdomain   string
+	LocalPort   int
+	Client      *Client
+	UserID      uuid.UUID
+	RequestType string
 }
 
 type TunnelRequest struct {
@@ -113,13 +114,13 @@ type Client struct {
 
 // ChatMessage represents an encrypted chat message stored in memory
 type ChatMessage struct {
-	ID        string    `json:"id"`
-	SenderID  uuid.UUID `json:"sender_id"`
-	SenderName string   `json:"sender_name"`
-	AvatarURL *string   `json:"avatar_url,omitempty"`
-	Content   string    `json:"content"`   // Encrypted ciphertext
-	Encrypted bool      `json:"encrypted"`
-	Timestamp time.Time `json:"timestamp"`
+	ID         string    `json:"id"`
+	SenderID   uuid.UUID `json:"sender_id"`
+	SenderName string    `json:"sender_name"`
+	AvatarURL  *string   `json:"avatar_url,omitempty"`
+	Content    string    `json:"content"` // Encrypted ciphertext
+	Encrypted  bool      `json:"encrypted"`
+	Timestamp  time.Time `json:"timestamp"`
 }
 
 // ChatMessageData is the JSON representation sent to clients
@@ -253,8 +254,8 @@ type Hub struct {
 	chatMu          sync.RWMutex
 
 	// E2E Key Exchange
-	publicKeys          map[uuid.UUID]string               // userID -> publicKey
-	workspaceKeyHolders map[uuid.UUID]map[uuid.UUID]bool   // workspaceID -> set of userIDs who have the key
+	publicKeys          map[uuid.UUID]string             // userID -> publicKey
+	workspaceKeyHolders map[uuid.UUID]map[uuid.UUID]bool // workspaceID -> set of userIDs who have the key
 	keysMu              sync.RWMutex
 
 	// Tunnels
@@ -634,9 +635,9 @@ func (h *Hub) triggerKeyExchange(workspaceID uuid.UUID, newClient *Client) {
 		// Find a key holder who is currently online and subscribed to this workspace
 		for _, client := range h.clients {
 			if client.ID != newClient.ID &&
-			   client.Workspaces[workspaceID] &&
-			   client.PublicKey != "" &&
-			   keyHolders[client.UserID] {
+				client.Workspaces[workspaceID] &&
+				client.PublicKey != "" &&
+				keyHolders[client.UserID] {
 				selectedKeyHolder = client
 				break
 			}
@@ -791,6 +792,17 @@ func (h *Hub) IsSubscribedToWorkspace(clientID string, workspaceID uuid.UUID) bo
 
 // RegisterTunnel registers a new tunnel for a subdomain
 func (h *Hub) RegisterTunnel(subdomain string, localPort int, client *Client, userID uuid.UUID) error {
+	return h.registerForward(subdomain, localPort, client, userID, "tunnel_request")
+}
+
+// RegisterWebhook registers a webhook receiver for a subdomain. Unlike a tunnel,
+// incoming requests are captured by the client rather than forwarded to a local
+// port, so requests are pushed with a "webhook_request" type and no port is stored.
+func (h *Hub) RegisterWebhook(subdomain string, client *Client, userID uuid.UUID) error {
+	return h.registerForward(subdomain, 0, client, userID, "webhook_request")
+}
+
+func (h *Hub) registerForward(subdomain string, localPort int, client *Client, userID uuid.UUID, requestType string) error {
 	h.tunnelMu.Lock()
 	defer h.tunnelMu.Unlock()
 
@@ -799,10 +811,11 @@ func (h *Hub) RegisterTunnel(subdomain string, localPort int, client *Client, us
 	}
 
 	h.tunnels[subdomain] = &TunnelInfo{
-		Subdomain: subdomain,
-		LocalPort: localPort,
-		Client:    client,
-		UserID:    userID,
+		Subdomain:   subdomain,
+		LocalPort:   localPort,
+		Client:      client,
+		UserID:      userID,
+		RequestType: requestType,
 	}
 	return nil
 }
@@ -868,8 +881,12 @@ func (h *Hub) SendTunnelRequest(subdomain string, req *TunnelRequest) (*TunnelRe
 	}()
 
 	// Send request to client
+	reqType := info.RequestType
+	if reqType == "" {
+		reqType = "tunnel_request"
+	}
 	msg, _ := json.Marshal(map[string]interface{}{
-		"type":      "tunnel_request",
+		"type":      reqType,
 		"id":        req.ID,
 		"subdomain": subdomain,
 		"method":    req.Method,

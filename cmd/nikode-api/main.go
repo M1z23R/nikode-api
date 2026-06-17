@@ -13,9 +13,9 @@ import (
 	"github.com/dimitrije/nikode-api/internal/config"
 	"github.com/dimitrije/nikode-api/internal/database"
 	"github.com/dimitrije/nikode-api/internal/handlers"
+	"github.com/dimitrije/nikode-api/internal/hub"
 	authmw "github.com/dimitrije/nikode-api/internal/middleware"
 	"github.com/dimitrije/nikode-api/internal/services"
-	"github.com/dimitrije/nikode-api/internal/hub"
 	"github.com/m1z23r/drift/pkg/drift"
 	"github.com/m1z23r/drift/pkg/middleware"
 )
@@ -65,6 +65,7 @@ func main() {
 	templateHandler := handlers.NewTemplateHandler(templateService)
 	webhookHandler := handlers.NewWebhookHandler(h)
 	tunnelHandler := handlers.NewTunnelHandler(h, jwtService)
+	webhookWSHandler := handlers.NewWebhookWSHandler(h, jwtService)
 
 	app := drift.New()
 
@@ -161,6 +162,7 @@ func main() {
 	api.Get("/ws", pingPongHandler.Connect)
 	api.Get("/sync", syncHandler.Connect)
 	api.Get("/tunnel", tunnelHandler.Connect)
+	api.Get("/webhook", webhookWSHandler.Connect)
 
 	// Public invite pages (no auth required)
 	app.Get("/invite/:inviteId", inviteHandler.ViewInvite)
